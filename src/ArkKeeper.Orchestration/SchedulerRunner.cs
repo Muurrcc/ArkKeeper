@@ -21,11 +21,23 @@ public sealed class SchedulerRunner
 
     public IReadOnlyList<TaskSchedule> Schedules => _schedules;
 
+    /// <summary>The underlying tasks, e.g. to persist via <see cref="SchedulerStore"/>.</summary>
+    public IReadOnlyList<ScheduledTask> Tasks => _schedules.Select(s => s.Task).ToList();
+
     public TaskSchedule Add(ScheduledTask task, DateTimeOffset? now = null)
     {
         var schedule = new TaskSchedule(task, now ?? DateTimeOffset.UtcNow);
         _schedules.Add(schedule);
         return schedule;
+    }
+
+    /// <summary>Adds every task from a previous <see cref="SchedulerStore.LoadAsync"/> call.</summary>
+    public void AddRange(IEnumerable<ScheduledTask> tasks, DateTimeOffset? now = null)
+    {
+        foreach (var task in tasks)
+        {
+            Add(task, now);
+        }
     }
 
     public void Remove(TaskSchedule schedule) => _schedules.Remove(schedule);

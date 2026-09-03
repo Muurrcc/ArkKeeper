@@ -1,8 +1,10 @@
+using System.IO.Compression;
+
 namespace ArkKeeper.Core.Snapshots;
 
-/// <summary>Copies a server's save directory to/from timestamped backup folders.
-/// This complements the RCON "SaveWorld" command (which flushes the current save to
-/// disk) with ArkKeeper's own point-in-time snapshots.</summary>
+/// <summary>Copies a server's save directory to/from timestamped backups (plain folders or,
+/// optionally, zip files). This complements the RCON "SaveWorld" command (which flushes the
+/// current save to disk) with ArkKeeper's own point-in-time snapshots.</summary>
 public sealed class WorldBackupService
 {
     public WorldBackupService(string backupRootDirectory)
@@ -12,24 +14,32 @@ public sealed class WorldBackupService
 
     public string BackupRootDirectory { get; }
 
-    /// <summary>Copies <paramref name="saveDirectory"/> into a new timestamped folder under
-    /// <see cref="BackupRootDirectory"/> and returns its path.</summary>
-    public string CreateBackup(string saveDirectory, DateTimeOffset? timestamp = null)
+    /// <summary>Copies <paramref name="saveDirectory"/> into a new timestamped backup under
+    /// <see cref="BackupRootDirectory"/> — a folder by default, or a single .zip file when
+    /// <paramref name="compress"/> is true — and returns its path.</summary>
+    public string CreateBackup(string saveDirectory, DateTimeOffset? timestamp = null, bool compress = false)
     {
         if (!Directory.Exists(saveDirectory))
         {
             throw new DirectoryNotFoundException($"Save directory not found: {saveDirectory}");
         }
 
+        Directory.CreateDirectory(BackupRootDirectory);
         var stamp = (timestamp ?? DateTimeOffset.UtcNow).ToString("yyyyMMdd-HHmmss");
+
+        if (compress)
+        {
+            var zipPath = Path.Combine(BackupRootDirectory, stamp + ".zip");
+            ZipFile.CreateFromDirectory(saveDirectory, zipPath);
+            return zipPath;
+        }
+
         var destination = Path.Combine(BackupRootDirectory, stamp);
-
         CopyDirectory(saveDirectory, destination);
-
         return destination;
     }
 
-    /// <summary>Lists available backups, newest first.</summary>
+    /// <summary>Lists available backups (folders and .zip files alike), newest first.</summary>
     public IReadOnlyList<string> ListBackups()
     {
         if (!Directory.Exists(BackupRootDirectory))
@@ -38,16 +48,46 @@ public sealed class WorldBackupService
         }
 
         return Directory.GetDirectories(BackupRootDirectory)
-            .OrderByDescending(path => path)
+            .Concat(Directory.GetFiles(BackupRootDirectory, "*.zip"))
+            .OrderByDescending(path => Path.GetFileNameWithoutExtension(path))
             .ToList();
     }
 
-    /// <summary>Overwrites <paramref name="saveDirectory"/> with the contents of <paramref name="backupDirectory"/>.</summary>
-    public void RestoreBackup(string backupDirectory, string saveDirectory)
+    /// <summary>Deletes the oldest backups beyond <paramref name="keepCount"/> most recent ones.
+    /// Returns the paths that were deleted.</summary>
+    public IReadOnlyList<string> PruneBackups(int keepCount)
     {
-        if (!Directory.Exists(backupDirectory))
+        if (keepCount < 0)
         {
-            throw new DirectoryNotFoundException($"Backup not found: {backupDirectory}");
+            throw new ArgumentOutOfRangeException(nameof(keepCount), "keepCount cannot be negative.");
+        }
+
+        var toDelete = ListBackups().Skip(keepCount).ToList();
+
+        foreach (var path in toDelete)
+        {
+            if (Directory.Exists(path))
+            {
+                Directory.Delete(path, recursive: true);
+            }
+            else if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+
+        return toDelete;
+    }
+
+    /// <summary>Overwrites <paramref name="saveDirectory"/> with the contents of <paramref name="backupPath"/>
+    /// — accepts either a backup folder or a .zip backup.</summary>
+    public void RestoreBackup(string backupPath, string saveDirectory)
+    {
+        var isZip = backupPath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase);
+
+        if (isZip ? !File.Exists(backupPath) : !Directory.Exists(backupPath))
+        {
+            throw new FileNotFoundException($"Backup not found: {backupPath}", backupPath);
         }
 
         if (Directory.Exists(saveDirectory))
@@ -55,7 +95,15 @@ public sealed class WorldBackupService
             Directory.Delete(saveDirectory, recursive: true);
         }
 
-        CopyDirectory(backupDirectory, saveDirectory);
+        if (isZip)
+        {
+            Directory.CreateDirectory(saveDirectory);
+            ZipFile.ExtractToDirectory(backupPath, saveDirectory);
+        }
+        else
+        {
+            CopyDirectory(backupPath, saveDirectory);
+        }
     }
 
     private static void CopyDirectory(string source, string destination)

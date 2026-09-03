@@ -25,6 +25,10 @@ internal sealed class FakeRconServer : IAsyncDisposable
 
     public int Port { get; }
 
+    /// <summary>If set, the server closes the connection after this many commands on it —
+    /// simulating a mid-session drop, so tests can verify a client's reconnect/retry logic.</summary>
+    public int? CloseConnectionAfterCommands { get; set; }
+
     public IReadOnlyList<string> ReceivedCommands
     {
         get { lock (_receivedCommands) { return _receivedCommands.ToArray(); } }
@@ -57,6 +61,8 @@ internal sealed class FakeRconServer : IAsyncDisposable
         await WritePacketAsync(stream, new RconPacket(0, RconPacketType.ResponseValue, string.Empty), cancellationToken);
         await WritePacketAsync(stream, new RconPacket(authPacket.Id, RconPacketType.ExecCommandOrAuthResponse, string.Empty), cancellationToken);
 
+        var commandsOnThisConnection = 0;
+
         while (!cancellationToken.IsCancellationRequested)
         {
             RconPacket command;
@@ -75,6 +81,12 @@ internal sealed class FakeRconServer : IAsyncDisposable
             }
 
             await WritePacketAsync(stream, new RconPacket(command.Id, RconPacketType.ResponseValue, "OK"), cancellationToken);
+
+            commandsOnThisConnection++;
+            if (CloseConnectionAfterCommands is { } limit && commandsOnThisConnection >= limit)
+            {
+                return;
+            }
         }
     }
 

@@ -1487,4 +1487,31 @@ public sealed partial class ServerProfile : ObservableObject
 
         return profile;
     }
+
+    /// <summary>Creates an independent copy of this profile with a fresh <see cref="ProfileId"/>,
+    /// so saving it via <see cref="ProfileStore"/> doesn't overwrite the original.</summary>
+    public ServerProfile Duplicate(string? newProfileName = null)
+    {
+        var data = ToData();
+        data.ProfileId = Guid.NewGuid();
+        data.ProfileName = newProfileName ?? $"{ProfileName} (copy)";
+        return FromData(data);
+    }
+
+    /// <summary>Builds a new profile by reading an existing GameUserSettings.ini/Game.ini pair
+    /// from <paramref name="configDirectory"/> — for importing a server someone already has set
+    /// up outside ArkKeeper. Missing files are treated as empty (their settings stay at
+    /// ArkKeeper's defaults) rather than throwing.</summary>
+    public static async Task<ServerProfile> ImportFromDirectoryAsync(string configDirectory, CancellationToken cancellationToken = default)
+    {
+        var gameUserSettingsText = await ReadIfExistsAsync(Path.Combine(configDirectory, "GameUserSettings.ini"), cancellationToken);
+        var gameText = await ReadIfExistsAsync(Path.Combine(configDirectory, "Game.ini"), cancellationToken);
+
+        var profile = new ServerProfile();
+        profile.ImportFrom(IniDocument.Parse(gameUserSettingsText), IniDocument.Parse(gameText));
+        return profile;
+    }
+
+    private static async Task<string> ReadIfExistsAsync(string path, CancellationToken cancellationToken) =>
+        File.Exists(path) ? await File.ReadAllTextAsync(path, cancellationToken) : string.Empty;
 }
