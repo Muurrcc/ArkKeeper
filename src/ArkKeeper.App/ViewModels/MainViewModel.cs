@@ -23,7 +23,7 @@ public partial class MainViewModel : ViewModelBase
     {
         _profileStore = profileStore;
 
-        ServersPage = new ServersViewModel(Profiles, fleet, _profileStore, OpenEditor, OpenConsole);
+        ServersPage = new ServersViewModel(Profiles, fleet, _profileStore, OpenEditor, OpenConsole, OpenPlayers);
         DashboardPage = new DashboardViewModel(ServersPage.Servers);
         SettingsPage = new SettingsViewModel();
 
@@ -67,4 +67,9 @@ public partial class MainViewModel : ViewModelBase
     /// <see cref="OpenEditor"/>.</summary>
     private void OpenConsole(ServerRowViewModel row) =>
         SelectedPage = new RconConsoleViewModel(row, () => SelectedPage = ServersPage);
+
+    /// <summary>Opens the players/tribes page for one server. Same navigation pattern as
+    /// <see cref="OpenEditor"/>.</summary>
+    private void OpenPlayers(ServerRowViewModel row) =>
+        SelectedPage = new PlayersViewModel(row, () => SelectedPage = ServersPage);
 }

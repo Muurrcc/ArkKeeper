@@ -25,6 +25,10 @@ internal sealed class FakeRconServer : IAsyncDisposable
 
     public int Port { get; }
 
+    /// <summary>Maps a received command to the response body to send back. Defaults to "OK" for
+    /// anything not explicitly set.</summary>
+    public Func<string, string> ResponseProvider { get; set; } = _ => "OK";
+
     /// <summary>If set, the server closes the connection after this many commands on it —
     /// simulating a mid-session drop, so tests can verify a client's reconnect/retry logic.</summary>
     public int? CloseConnectionAfterCommands { get; set; }
@@ -90,7 +94,7 @@ internal sealed class FakeRconServer : IAsyncDisposable
                 await Task.Delay(ResponseDelay, cancellationToken);
             }
 
-            await WritePacketAsync(stream, new RconPacket(command.Id, RconPacketType.ResponseValue, "OK"), cancellationToken);
+            await WritePacketAsync(stream, new RconPacket(command.Id, RconPacketType.ResponseValue, ResponseProvider(command.Body)), cancellationToken);
 
             commandsOnThisConnection++;
             if (CloseConnectionAfterCommands is { } limit && commandsOnThisConnection >= limit)

@@ -60,6 +60,9 @@
                                     <Button Content="Console"
                                             Command="{Binding #Root.((vm:ServersViewModel)DataContext).ConsoleCommand}"
                                             CommandParameter="{Binding}" />
+                                    <Button Content="Players"
+                                            Command="{Binding #Root.((vm:ServersViewModel)DataContext).PlayersCommand}"
+                                            CommandParameter="{Binding}" />
                                     <Button Content="Edit"
                                             Command="{Binding #Root.((vm:ServersViewModel)DataContext).EditCommand}"
                                             CommandParameter="{Binding}" />

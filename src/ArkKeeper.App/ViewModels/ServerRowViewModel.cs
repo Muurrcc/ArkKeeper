@@ -1,3 +1,4 @@
+using ArkKeeper.Core.Players;
 using ArkKeeper.Core.Profiles;
 using ArkKeeper.Core.Servers;
 using ArkKeeper.Orchestration;
@@ -39,6 +40,20 @@ public partial class ServerRowViewModel : ViewModelBase
     /// — used by <see cref="RconConsoleViewModel"/>.</summary>
     public Task<string> SendRconCommandAsync(string command, CancellationToken cancellationToken = default) =>
         _server.SendRconCommandAsync(command, cancellationToken);
+
+    /// <summary>Exposes the typed player-management RCON commands — used by
+    /// <see cref="PlayersViewModel"/>.</summary>
+    public Task<IReadOnlyList<ConnectedPlayer>> GetPlayersAsync(CancellationToken cancellationToken = default) =>
+        _server.GetPlayersAsync(cancellationToken);
+
+    public Task<string> KickPlayerAsync(string steamId, CancellationToken cancellationToken = default) =>
+        _server.KickPlayerAsync(steamId, cancellationToken);
+
+    public Task<string> BanPlayerAsync(string steamId, CancellationToken cancellationToken = default) =>
+        _server.BanPlayerAsync(steamId, cancellationToken);
+
+    public Task<string> UnbanPlayerAsync(string steamId, CancellationToken cancellationToken = default) =>
+        _server.UnbanPlayerAsync(steamId, cancellationToken);
 
     [RelayCommand(CanExecute = nameof(CanStart))]
     private void Start()

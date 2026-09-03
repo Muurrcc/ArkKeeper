@@ -1,3 +1,4 @@
+using ArkKeeper.Core.Players;
 using ArkKeeper.Core.Profiles;
 using ArkKeeper.Core.Servers;
 using ArkKeeper.Discord;
@@ -135,6 +136,24 @@ public sealed class ManagedServer : IAsyncDisposable
             _rconLock.Release();
         }
     }
+
+    /// <summary>Lists currently-connected players, parsed from RCON's <c>ListPlayers</c> — goes
+    /// through <see cref="SendRconCommandAsync"/> like every other command, so it shares the same
+    /// connect/lock/retry behavior rather than opening a connection of its own.</summary>
+    public async Task<IReadOnlyList<ConnectedPlayer>> GetPlayersAsync(CancellationToken cancellationToken = default)
+    {
+        var response = await SendRconCommandAsync("ListPlayers", cancellationToken);
+        return ListPlayersParser.Parse(response);
+    }
+
+    public Task<string> KickPlayerAsync(string steamId, CancellationToken cancellationToken = default) =>
+        SendRconCommandAsync($"KickPlayer {steamId}", cancellationToken);
+
+    public Task<string> BanPlayerAsync(string steamId, CancellationToken cancellationToken = default) =>
+        SendRconCommandAsync($"BanPlayer {steamId}", cancellationToken);
+
+    public Task<string> UnbanPlayerAsync(string steamId, CancellationToken cancellationToken = default) =>
+        SendRconCommandAsync($"UnbanPlayer {steamId}", cancellationToken);
 
     /// <summary>Returns the current RCON connection, or establishes one. Callers must already
     /// hold <see cref="_rconLock"/> — this does no locking of its own.</summary>

@@ -1,0 +1,121 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:ArkKeeper.App.ViewModels"
+             xmlns:conv="using:ArkKeeper.App.Converters"
+             xmlns:players="using:ArkKeeper.Core.Players"
+             xmlns:saves="using:ArkKeeper.Core.Saves"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="ArkKeeper.App.Views.PlayersView"
+             x:DataType="vm:PlayersViewModel"
+             x:Name="Root">
+
+    <DockPanel Margin="24">
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+            <StackPanel Grid.Column="0" Spacing="2">
+                <TextBlock FontSize="24" FontWeight="SemiBold" Text="Players &amp; tribes" />
+                <TextBlock Text="{Binding Profile.ProfileName}" Opacity="0.7" />
+            </StackPanel>
+            <Button Grid.Column="1" Content="Close" Command="{Binding CloseCommand}" />
+        </Grid>
+
+        <TextBlock DockPanel.Dock="Top"
+                   Text="{Binding ErrorMessage}"
+                   IsVisible="{Binding ErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}"
+                   Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                   Margin="0,0,0,12" TextWrapping="Wrap" />
+
+        <ScrollViewer>
+            <StackPanel Spacing="20">
+
+                <StackPanel Spacing="8">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0" Text="Connected players" FontSize="16" FontWeight="SemiBold" />
+                        <Button Grid.Column="1" Content="Refresh" Command="{Binding RefreshConnectedCommand}" />
+                    </Grid>
+
+                    <ItemsControl ItemsSource="{Binding ConnectedPlayers}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="players:ConnectedPlayer">
+                                <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                                        CornerRadius="6" Padding="12" Margin="0,0,0,8">
+                                    <Grid ColumnDefinitions="*,Auto,Auto">
+                                        <StackPanel Grid.Column="0" Spacing="2">
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                            <TextBlock Text="{Binding SteamId}" Opacity="0.7" FontSize="12" />
+                                        </StackPanel>
+                                        <Button Grid.Column="1" Content="Kick" Margin="0,0,8,0"
+                                                Command="{Binding #Root.((vm:PlayersViewModel)DataContext).KickCommand}"
+                                                CommandParameter="{Binding}" />
+                                        <Button Grid.Column="2" Content="Ban"
+                                                Command="{Binding #Root.((vm:PlayersViewModel)DataContext).BanCommand}"
+                                                CommandParameter="{Binding}" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBox Grid.Column="0" Text="{Binding UnbanSteamId}"
+                                  PlaceholderText="SteamID to unban" />
+                        <Button Grid.Column="1" Content="Unban" Margin="8,0,0,0"
+                                Command="{Binding UnbanCommand}" />
+                    </Grid>
+                </StackPanel>
+
+                <StackPanel Spacing="8">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0" Text="Known players (from save files)" FontSize="16" FontWeight="SemiBold" />
+                        <Button Grid.Column="1" Content="Reload" Command="{Binding ReloadKnownCommand}" />
+                    </Grid>
+
+                    <TextBlock Text="No player save files found — the profile's install directory may not be set, or the server hasn't run yet."
+                               Opacity="0.6" IsVisible="{Binding HasNoKnownPlayers}" />
+
+                    <ItemsControl ItemsSource="{Binding KnownPlayers}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="saves:PlayerInfo">
+                                <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                                        CornerRadius="6" Padding="12" Margin="0,0,0,8">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <StackPanel Grid.Column="0" Spacing="2">
+                                            <TextBlock Text="{Binding CharacterName}" FontWeight="SemiBold" />
+                                            <TextBlock Text="{Binding SteamName}" Opacity="0.7" FontSize="12" />
+                                            <TextBlock Text="{Binding SteamId}" Opacity="0.5" FontSize="11" />
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1" Text="{Binding Level, StringFormat='Level {0}'}"
+                                                   VerticalAlignment="Center" Opacity="0.7" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Tribes (from save files)" FontSize="16" FontWeight="SemiBold" />
+
+                    <TextBlock Text="No tribe save files found."
+                               Opacity="0.6" IsVisible="{Binding HasNoTribes}" />
+
+                    <ItemsControl ItemsSource="{Binding Tribes}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="saves:TribeInfo">
+                                <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                                        CornerRadius="6" Padding="12" Margin="0,0,0,8">
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding Id}" Opacity="0.6" FontSize="12" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>
