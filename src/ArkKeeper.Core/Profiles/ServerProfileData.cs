@@ -233,6 +233,22 @@ public sealed class ServerProfileData
     public int SOTF_BattleAutoStartGameInterval { get; set; } = 60;
     public int SOTF_BattleAutoRestartGameInterval { get; set; } = 45;
     public int SOTF_BattleSuddenDeathInterval { get; set; } = 300;
+
+    // Override lists — see ServerProfile.cs's matching region for why these are List<string>.
+    public List<string> DinoSpawnWeightMultipliers { get; set; } = new();
+    public List<string> TamedDinoClassDamageMultipliers { get; set; } = new();
+    public List<string> TamedDinoClassResistanceMultipliers { get; set; } = new();
+    public List<string> DinoClassDamageMultipliers { get; set; } = new();
+    public List<string> DinoClassResistanceMultipliers { get; set; } = new();
+    public List<string> NPCReplacements { get; set; } = new();
+    public List<string> PreventDinoTameClassNames { get; set; } = new();
+    public List<string> HarvestResourceItemAmountClassMultipliers { get; set; } = new();
+    public List<string> OverrideNamedEngramEntries { get; set; } = new();
+    public List<string> ConfigOverrideItemCraftingCosts { get; set; } = new();
+    public List<string> ConfigAddNPCSpawnEntriesContainer { get; set; } = new();
+    public List<string> ConfigSubtractNPCSpawnEntriesContainer { get; set; } = new();
+    public List<string> ConfigOverrideNPCSpawnEntriesContainer { get; set; } = new();
+    public List<string> ConfigOverrideSupplyCrateItems { get; set; } = new();
 }
 
 [JsonSourceGenerationOptions(WriteIndented = true)]

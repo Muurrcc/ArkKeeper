@@ -30,6 +30,32 @@ internal static class ArkPropertyReader
             ? BinaryPrimitives.ReadUInt16LittleEndian(data[valueOffset..])
             : (ushort)0;
 
+    public static ulong GetUInt64(ReadOnlySpan<byte> data, string propertyName) =>
+        TryLocateFixedValue(data, propertyName, "UInt64Property", 8, out var valueOffset)
+            ? BinaryPrimitives.ReadUInt64LittleEndian(data[valueOffset..])
+            : 0;
+
+    /// <summary>Reads a fixed-length ASCII/Latin1 field found directly <paramref name="offsetAfterName"/>
+    /// bytes after <paramref name="propertyName"/>'s own text — used for struct-typed properties
+    /// (like the player's SteamID) that don't have a separate "XxxProperty" type marker to search
+    /// for, unlike the scalar properties the other Get* methods handle.</summary>
+    public static string GetFixedString(ReadOnlySpan<byte> data, string propertyName, int offsetAfterName, int length)
+    {
+        var nameOffset = data.LocateFirst(Encoding.ASCII.GetBytes(propertyName));
+        if (nameOffset < 0)
+        {
+            return string.Empty;
+        }
+
+        var valueStart = nameOffset + propertyName.Length + offsetAfterName;
+        if (valueStart < 0 || valueStart + length > data.Length)
+        {
+            return string.Empty;
+        }
+
+        return Encoding.Latin1.GetString(data.Slice(valueStart, length)).TrimEnd('\0');
+    }
+
     public static string GetString(ReadOnlySpan<byte> data, string propertyName)
     {
         ReadOnlySpan<byte> typeBytes = "StrProperty"u8;

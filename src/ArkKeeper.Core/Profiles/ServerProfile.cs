@@ -899,6 +899,74 @@ public sealed partial class ServerProfile : ObservableObject
 
     #endregion
 
+    #region Extended settings — Game.ini override lists (one raw value per repeated key)
+    //
+    // These are the "override list" settings from the original tool (per-dino-class damage/
+    // resistance multipliers, engram overrides, supply crate loot, NPC spawn overrides...).
+    // Each entry is kept as the whole "(ClassName=...,Multiplier=...)"-shaped ini value text
+    // verbatim rather than parsed into named fields — that's enough to round-trip correctly
+    // through the real game files (see IniSerializer's doc comment) without ArkKeeper needing a
+    // typed model for every override struct's exact shape. A UI for editing these would still
+    // need to either accept raw text or grow real per-type editors later.
+
+    [ObservableProperty]
+    [property: IniSetting(IniFile.Game, "/script/shootergame.shootergamemode", "DinoSpawnWeightMultipliers")]
+    private List<string> _dinoSpawnWeightMultipliers = new();
+
+    [ObservableProperty]
+    [property: IniSetting(IniFile.Game, "/script/shootergame.shootergamemode", "TamedDinoClassDamageMultipliers")]
+    private List<string> _tamedDinoClassDamageMultipliers = new();
+
+    [ObservableProperty]
+    [property: IniSetting(IniFile.Game, "/script/shootergame.shootergamemode", "TamedDinoClassResistanceMultipliers")]
+    private List<string> _tamedDinoClassResistanceMultipliers = new();
+
+    [ObservableProperty]
+    [property: IniSetting(IniFile.Game, "/script/shootergame.shootergamemode", "DinoClassDamageMultipliers")]
+    private List<string> _dinoClassDamageMultipliers = new();
+
+    [ObservableProperty]
+    [property: IniSetting(IniFile.Game, "/script/shootergame.shootergamemode", "DinoClassResistanceMultipliers")]
+    private List<string> _dinoClassResistanceMultipliers = new();
+
+    [ObservableProperty]
+    [property: IniSetting(IniFile.Game, "/script/shootergame.shootergamemode", "NPCReplacements")]
+    private List<string> _nPCReplacements = new();
+
+    [ObservableProperty]
+    [property: IniSetting(IniFile.Game, "/script/shootergame.shootergamemode", "PreventDinoTameClassNames")]
+    private List<string> _preventDinoTameClassNames = new();
+
+    [ObservableProperty]
+    [property: IniSetting(IniFile.Game, "/script/shootergame.shootergamemode", "HarvestResourceItemAmountClassMultipliers")]
+    private List<string> _harvestResourceItemAmountClassMultipliers = new();
+
+    [ObservableProperty]
+    [property: IniSetting(IniFile.Game, "/script/shootergame.shootergamemode", "OverrideNamedEngramEntries")]
+    private List<string> _overrideNamedEngramEntries = new();
+
+    [ObservableProperty]
+    [property: IniSetting(IniFile.Game, "/script/shootergame.shootergamemode", "ConfigOverrideItemCraftingCosts")]
+    private List<string> _configOverrideItemCraftingCosts = new();
+
+    [ObservableProperty]
+    [property: IniSetting(IniFile.Game, "/script/shootergame.shootergamemode", "ConfigAddNPCSpawnEntriesContainer")]
+    private List<string> _configAddNPCSpawnEntriesContainer = new();
+
+    [ObservableProperty]
+    [property: IniSetting(IniFile.Game, "/script/shootergame.shootergamemode", "ConfigSubtractNPCSpawnEntriesContainer")]
+    private List<string> _configSubtractNPCSpawnEntriesContainer = new();
+
+    [ObservableProperty]
+    [property: IniSetting(IniFile.Game, "/script/shootergame.shootergamemode", "ConfigOverrideNPCSpawnEntriesContainer")]
+    private List<string> _configOverrideNPCSpawnEntriesContainer = new();
+
+    [ObservableProperty]
+    [property: IniSetting(IniFile.Game, "/script/shootergame.shootergamemode", "ConfigOverrideSupplyCrateItems")]
+    private List<string> _configOverrideSupplyCrateItems = new();
+
+    #endregion
+
     #region Launch-only settings (not written to any .ini file)
 
     /// <summary>ARK map identifier (e.g. "TheIsland", "Ragnarok"), passed on the launch command line.</summary>
@@ -919,6 +987,13 @@ public sealed partial class ServerProfile : ObservableObject
     /// as reported by Steam's own app manifest for app 376030 (ARK: Survival Evolved Dedicated Server).</summary>
     public string GetServerExecutablePath() =>
         Path.Combine(InstallDirectory, "ShooterGame", "Binaries", "Win64", "ShooterGameServer.exe");
+
+    /// <summary>Directory holding this server's world saves, tribe/player profiles, etc.
+    /// (ShooterGame\Saved\SavedArks — verified against the original tool's own Config.settings
+    /// default, not guessed) — what <see cref="Snapshots.WorldBackupService"/> and
+    /// <see cref="Saves.TribeFileReader"/> operate on for this profile.</summary>
+    public string GetSaveDirectory() =>
+        Path.Combine(InstallDirectory, "ShooterGame", "Saved", "SavedArks");
 
     /// <summary>Applies values found in <paramref name="gameUserSettings"/> and <paramref name="game"/> onto this profile.</summary>
     public void ImportFrom(IniDocument gameUserSettings, IniDocument game)
@@ -1152,6 +1227,21 @@ public sealed partial class ServerProfile : ObservableObject
         SOTF_BattleAutoStartGameInterval = SOTF_BattleAutoStartGameInterval,
         SOTF_BattleAutoRestartGameInterval = SOTF_BattleAutoRestartGameInterval,
         SOTF_BattleSuddenDeathInterval = SOTF_BattleSuddenDeathInterval,
+
+        DinoSpawnWeightMultipliers = new List<string>(DinoSpawnWeightMultipliers),
+        TamedDinoClassDamageMultipliers = new List<string>(TamedDinoClassDamageMultipliers),
+        TamedDinoClassResistanceMultipliers = new List<string>(TamedDinoClassResistanceMultipliers),
+        DinoClassDamageMultipliers = new List<string>(DinoClassDamageMultipliers),
+        DinoClassResistanceMultipliers = new List<string>(DinoClassResistanceMultipliers),
+        NPCReplacements = new List<string>(NPCReplacements),
+        PreventDinoTameClassNames = new List<string>(PreventDinoTameClassNames),
+        HarvestResourceItemAmountClassMultipliers = new List<string>(HarvestResourceItemAmountClassMultipliers),
+        OverrideNamedEngramEntries = new List<string>(OverrideNamedEngramEntries),
+        ConfigOverrideItemCraftingCosts = new List<string>(ConfigOverrideItemCraftingCosts),
+        ConfigAddNPCSpawnEntriesContainer = new List<string>(ConfigAddNPCSpawnEntriesContainer),
+        ConfigSubtractNPCSpawnEntriesContainer = new List<string>(ConfigSubtractNPCSpawnEntriesContainer),
+        ConfigOverrideNPCSpawnEntriesContainer = new List<string>(ConfigOverrideNPCSpawnEntriesContainer),
+        ConfigOverrideSupplyCrateItems = new List<string>(ConfigOverrideSupplyCrateItems),
     };
 
     /// <summary>Rebuilds a <see cref="ServerProfile"/> from a snapshot produced by <see cref="ToData"/>.</summary>
@@ -1373,6 +1463,21 @@ public sealed partial class ServerProfile : ObservableObject
             SOTF_BattleAutoStartGameInterval = data.SOTF_BattleAutoStartGameInterval,
             SOTF_BattleAutoRestartGameInterval = data.SOTF_BattleAutoRestartGameInterval,
             SOTF_BattleSuddenDeathInterval = data.SOTF_BattleSuddenDeathInterval,
+
+            DinoSpawnWeightMultipliers = new List<string>(data.DinoSpawnWeightMultipliers),
+            TamedDinoClassDamageMultipliers = new List<string>(data.TamedDinoClassDamageMultipliers),
+            TamedDinoClassResistanceMultipliers = new List<string>(data.TamedDinoClassResistanceMultipliers),
+            DinoClassDamageMultipliers = new List<string>(data.DinoClassDamageMultipliers),
+            DinoClassResistanceMultipliers = new List<string>(data.DinoClassResistanceMultipliers),
+            NPCReplacements = new List<string>(data.NPCReplacements),
+            PreventDinoTameClassNames = new List<string>(data.PreventDinoTameClassNames),
+            HarvestResourceItemAmountClassMultipliers = new List<string>(data.HarvestResourceItemAmountClassMultipliers),
+            OverrideNamedEngramEntries = new List<string>(data.OverrideNamedEngramEntries),
+            ConfigOverrideItemCraftingCosts = new List<string>(data.ConfigOverrideItemCraftingCosts),
+            ConfigAddNPCSpawnEntriesContainer = new List<string>(data.ConfigAddNPCSpawnEntriesContainer),
+            ConfigSubtractNPCSpawnEntriesContainer = new List<string>(data.ConfigSubtractNPCSpawnEntriesContainer),
+            ConfigOverrideNPCSpawnEntriesContainer = new List<string>(data.ConfigOverrideNPCSpawnEntriesContainer),
+            ConfigOverrideSupplyCrateItems = new List<string>(data.ConfigOverrideSupplyCrateItems),
         };
 
         foreach (var modId in data.ModIds)

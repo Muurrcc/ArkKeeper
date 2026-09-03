@@ -105,4 +105,37 @@ public class ServerProfileExtendedSettingsTests
 
         Assert.Equivalent(original.ToData(), restored.ToData());
     }
+
+    [Fact]
+    public void OverrideLists_WriteAsRepeatedKeysAndRoundTripThroughIniText()
+    {
+        var original = new ServerProfile();
+        original.DinoClassDamageMultipliers.Add("(ClassName=\"Rex_Character_BP_C\",Multiplier=1.5)");
+        original.DinoClassDamageMultipliers.Add("(ClassName=\"Raptor_Character_BP_C\",Multiplier=2.0)");
+        original.PreventDinoTameClassNames.Add("Rex_Character_BP_C");
+
+        var document = original.ToGameIni();
+        var section = document.FindSection("/script/shootergame.shootergamemode")!;
+        Assert.Equal(2, section.GetAll("DinoClassDamageMultipliers").Count());
+        Assert.Equal(new[] { "Rex_Character_BP_C" }, section.GetAll("PreventDinoTameClassNames"));
+
+        var restored = new ServerProfile();
+        restored.ImportFrom(IniDocument.Parse(original.ToGameUserSettings().ToString()), IniDocument.Parse(document.ToString()));
+
+        Assert.Equal(original.DinoClassDamageMultipliers, restored.DinoClassDamageMultipliers);
+        Assert.Equal(original.PreventDinoTameClassNames, restored.PreventDinoTameClassNames);
+    }
+
+    [Fact]
+    public void OverrideLists_SurviveToDataFromDataRoundTrip()
+    {
+        var original = new ServerProfile();
+        original.OverrideNamedEngramEntries.Add("EngramEntry_AutoUnlocks_C");
+        original.ConfigOverrideSupplyCrateItems.Add("(SupplyCrateClassString=\"SupplyCrate_Level03_C\")");
+
+        var restored = ServerProfile.FromData(original.ToData());
+
+        Assert.Equal(original.OverrideNamedEngramEntries, restored.OverrideNamedEngramEntries);
+        Assert.Equal(original.ConfigOverrideSupplyCrateItems, restored.ConfigOverrideSupplyCrateItems);
+    }
 }

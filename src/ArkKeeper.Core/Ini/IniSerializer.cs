@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Globalization;
 using System.Reflection;
 
@@ -7,6 +8,16 @@ namespace ArkKeeper.Core.Ini;
 /// Reads and writes POCOs whose properties are decorated with <see cref="IniSettingAttribute"/>,
 /// so a type like <see cref="Profiles.ServerProfile"/> can round-trip through the game's own
 /// GameUserSettings.ini / Game.ini files.
+///
+/// Scalar properties (string/bool/int/float/double/enum) map to a single "Key=Value" line.
+/// <c>List&lt;T&gt;</c> properties map to the key repeated once per list item — this is how ARK
+/// itself stores "override list" settings (one line per dino/item/engram override etc.), and
+/// IniDocument already preserves repeated keys in order for exactly this. Each item is treated
+/// as an opaque value of type T: for the structured overrides (dino class multipliers, engram
+/// overrides, supply crate loot...) T is `string` and the value is the whole
+/// "(ClassName=...,Multiplier=...)"-shaped text verbatim — this doesn't parse the fields inside
+/// each entry, just preserves them, which is enough to round-trip correctly through the real
+/// game files without ArkKeeper needing to understand every override struct's exact shape.
 /// </summary>
 public static class IniSerializer
 {
@@ -14,18 +25,30 @@ public static class IniSerializer
     {
         foreach (var property in GetIniProperties(target.GetType(), file))
         {
-            var (attribute, _) = property;
+            var (attribute, propertyInfo) = property;
             var section = document.FindSection(attribute.Section);
-            var raw = section?.GetSingle(attribute.Key);
+            if (section is null)
+            {
+                continue;
+            }
+
+            if (TryGetListElementType(propertyInfo.PropertyType, out var elementType))
+            {
+                var list = CreateTypedList(elementType, section.GetAll(attribute.Key));
+                propertyInfo.SetValue(target, list);
+                continue;
+            }
+
+            var raw = section.GetSingle(attribute.Key);
             if (raw is null)
             {
                 continue;
             }
 
-            var converted = ConvertFromIni(raw, property.Property.PropertyType);
+            var converted = ConvertFromIni(raw, propertyInfo.PropertyType);
             if (converted is not null)
             {
-                property.Property.SetValue(target, converted);
+                propertyInfo.SetValue(target, converted);
             }
         }
     }
@@ -43,6 +66,20 @@ public static class IniSerializer
             }
 
             var section = document.GetOrAddSection(attribute.Section);
+
+            if (value is IEnumerable enumerable and not string)
+            {
+                section.RemoveAll(attribute.Key);
+                foreach (var item in enumerable)
+                {
+                    if (item is not null)
+                    {
+                        section.Add(attribute.Key, ConvertToIni(item));
+                    }
+                }
+                continue;
+            }
+
             section.SetSingle(attribute.Key, ConvertToIni(value));
         }
 
@@ -54,6 +91,35 @@ public static class IniSerializer
             .Select(p => (Attribute: p.GetCustomAttribute<IniSettingAttribute>(), Property: p))
             .Where(p => p.Attribute is not null && p.Attribute.File == file)
             .Select(p => (p.Attribute!, p.Property));
+
+    private static bool TryGetListElementType(Type propertyType, out Type elementType)
+    {
+        if (propertyType.IsGenericType && propertyType.GetGenericTypeDefinition() == typeof(List<>))
+        {
+            elementType = propertyType.GetGenericArguments()[0];
+            return true;
+        }
+
+        elementType = typeof(object);
+        return false;
+    }
+
+    private static IList CreateTypedList(Type elementType, IEnumerable<string> rawValues)
+    {
+        var listType = typeof(List<>).MakeGenericType(elementType);
+        var list = (IList)Activator.CreateInstance(listType)!;
+
+        foreach (var raw in rawValues)
+        {
+            var converted = ConvertFromIni(raw, elementType);
+            if (converted is not null)
+            {
+                list.Add(converted);
+            }
+        }
+
+        return list;
+    }
 
     private static string ConvertToIni(object value) => value switch
     {

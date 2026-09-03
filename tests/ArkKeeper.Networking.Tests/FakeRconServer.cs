@@ -25,6 +25,10 @@ internal sealed class FakeRconServer : IAsyncDisposable
 
     public int Port { get; }
 
+    /// <summary>Maps a received command to the response body to send back. Defaults to "OK" for
+    /// anything not explicitly set.</summary>
+    public Func<string, string> ResponseProvider { get; set; } = _ => "OK";
+
     public IReadOnlyList<string> ReceivedCommands
     {
         get { lock (_receivedCommands) { return _receivedCommands.ToArray(); } }
@@ -74,7 +78,7 @@ internal sealed class FakeRconServer : IAsyncDisposable
                 _receivedCommands.Add(command.Body);
             }
 
-            await WritePacketAsync(stream, new RconPacket(command.Id, RconPacketType.ResponseValue, "OK"), cancellationToken);
+            await WritePacketAsync(stream, new RconPacket(command.Id, RconPacketType.ResponseValue, ResponseProvider(command.Body)), cancellationToken);
         }
     }
 
