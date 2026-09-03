@@ -18,23 +18,28 @@ public class ServerProfileTests
     [Fact]
     public void ToGameUserSettings_WritesOnlyGameUserSettingsKeys_NotGameIniKeys()
     {
-        var profile = new ServerProfile { SessionName = "Island Server", MaxPlayers = 30 };
+        // MaxPlayers lives in GameUserSettings.ini's /Script/Engine.GameSession section
+        // (verified against the original tool's source — an earlier version of this code had
+        // it in Game.ini, which was wrong), while e.g. MaxTribeLogs is a genuine Game.ini key.
+        var profile = new ServerProfile { SessionName = "Island Server", MaxPlayers = 30, MaxTribeLogs = 50 };
 
         var document = profile.ToGameUserSettings();
 
         Assert.Equal("Island Server", document.FindSection("SessionSettings")!.GetSingle("SessionName"));
-        Assert.Null(document.FindSection("/Script/Engine.GameSession"));
+        Assert.Equal("30", document.FindSection("/Script/Engine.GameSession")!.GetSingle("MaxPlayers"));
+        Assert.Null(document.FindSection("/script/shootergame.shootergamemode"));
     }
 
     [Fact]
     public void ToGameIni_WritesOnlyGameIniKeys()
     {
-        var profile = new ServerProfile { MaxPlayers = 42 };
+        var profile = new ServerProfile { MaxTribeLogs = 200 };
 
         var document = profile.ToGameIni();
 
-        Assert.Equal("42", document.FindSection("/Script/Engine.GameSession")!.GetSingle("MaxPlayers"));
+        Assert.Equal("200", document.FindSection("/script/shootergame.shootergamemode")!.GetSingle("MaxTribeLogs"));
         Assert.Null(document.FindSection("SessionSettings"));
+        Assert.Null(document.FindSection("/Script/Engine.GameSession"));
     }
 
     [Fact]
