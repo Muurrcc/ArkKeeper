@@ -74,6 +74,36 @@ public class BackupSchedulerTests : IDisposable
         Assert.Single(backupService.ListBackups());
     }
 
+    [Fact]
+    public async Task RunLoopAsync_CreatesABackupOnceDueThenStopsOnCancellation()
+    {
+        await using var server = new FakeRconServer();
+        await using var rcon = new RconClient();
+        await rcon.ConnectAsync("127.0.0.1", server.Port, "password");
+
+        var backupService = new WorldBackupService(_backupRoot);
+        // Already due immediately (created "in the past" relative to "now").
+        var scheduler = new BackupScheduler(backupService, ScheduleKind.Interval, TimeSpan.FromHours(6), now: DateTimeOffset.UtcNow.AddHours(-7));
+
+        using var cts = new CancellationTokenSource();
+        var loopTask = scheduler.RunLoopAsync(rcon, _saveDirectory, TimeSpan.FromMilliseconds(50), cts.Token);
+
+        await WaitUntilAsync(() => backupService.ListBackups().Count > 0);
+        cts.Cancel();
+        await loopTask;
+
+        Assert.Single(backupService.ListBackups());
+    }
+
+    private static async Task WaitUntilAsync(Func<bool> condition, int timeoutMs = 5000)
+    {
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        while (!condition() && sw.ElapsedMilliseconds < timeoutMs)
+        {
+            await Task.Delay(20);
+        }
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_root))

@@ -46,6 +46,12 @@ public sealed class ManagedServer : IAsyncDisposable
     /// or <see cref="Kill"/>) automatically restarts the server.</summary>
     public bool AutoRestart { get; set; }
 
+    /// <summary>Delay before an auto-restart actually happens. Exists so a server that crashes
+    /// immediately on every launch (bad config, missing mod, etc.) doesn't spin in a tight
+    /// restart loop — without this, a instant-crashing process previously caused exactly that,
+    /// hammering the OS with process creation and racing Start()/Dispose() on the same instant.</summary>
+    public TimeSpan AutoRestartDelay { get; set; } = TimeSpan.FromSeconds(5);
+
     public ServerStatus Status => _process.Status;
 
     public int? ProcessId => _process.ProcessId;
@@ -127,15 +133,29 @@ public sealed class ManagedServer : IAsyncDisposable
 
         if (AutoRestart && !_stopRequested)
         {
-            _logger.LogWarning("Server {SessionName} exited unexpectedly, auto-restarting", Profile.SessionName);
-            try
+            _logger.LogWarning(
+                "Server {SessionName} exited unexpectedly, auto-restarting in {Delay}",
+                Profile.SessionName, AutoRestartDelay);
+            _ = AutoRestartAfterDelayAsync();
+        }
+    }
+
+    private async Task AutoRestartAfterDelayAsync()
+    {
+        try
+        {
+            await Task.Delay(AutoRestartDelay);
+
+            if (_stopRequested)
             {
-                Start();
+                return;
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Auto-restart failed for {SessionName}", Profile.SessionName);
-            }
+
+            Start();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Auto-restart failed for {SessionName}", Profile.SessionName);
         }
     }
 

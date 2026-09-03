@@ -50,6 +50,15 @@ public sealed class ServerProcess : IDisposable
             throw new FileNotFoundException("Server executable not found — install/update it first.", ExecutablePath);
         }
 
+        // Release the previous instance's handle before replacing it — Start() can be called
+        // again after a prior run exited (e.g. ManagedServer's auto-restart), and leaving the
+        // old Process object around unreleased/undisposed is a real resource leak, not just tidiness.
+        if (_process is not null)
+        {
+            _process.Exited -= OnProcessExited;
+            _process.Dispose();
+        }
+
         var startInfo = new ProcessStartInfo
         {
             FileName = ExecutablePath,
@@ -58,9 +67,10 @@ public sealed class ServerProcess : IDisposable
             WorkingDirectory = Path.GetDirectoryName(Path.GetFullPath(ExecutablePath)),
         };
 
-        _process = new Process { StartInfo = startInfo, EnableRaisingEvents = true };
-        _process.Exited += OnProcessExited;
-        _process.Start();
+        var newProcess = new Process { StartInfo = startInfo, EnableRaisingEvents = true };
+        newProcess.Exited += OnProcessExited;
+        newProcess.Start();
+        _process = newProcess;
     }
 
     /// <summary>Terminates the process immediately. Prefer

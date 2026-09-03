@@ -33,12 +33,16 @@ public class ManagedServerResilienceTests
     {
         var profile = new ServerProfile();
         using var process = new ServerProcess(CmdExe, "/c exit 1");
-        await using var server = new ManagedServer(profile, process) { AutoRestart = true };
+        await using var server = new ManagedServer(profile, process)
+        {
+            AutoRestart = true,
+            AutoRestartDelay = TimeSpan.FromMilliseconds(50),
+        };
 
         server.Start();
-        // The stand-in process exits almost immediately ("crashing"); give the exited-event
-        // handler a moment to react and call Start() again.
-        await Task.Delay(500);
+        // The stand-in process exits almost immediately ("crashing"); wait for the (short,
+        // for this test) auto-restart delay to elapse and the exited-event handler to react.
+        await WaitUntilAsync(() => server.Status == ServerStatus.Running);
 
         Assert.Equal(ServerStatus.Running, server.Status);
 
@@ -50,13 +54,27 @@ public class ManagedServerResilienceTests
     {
         var profile = new ServerProfile();
         using var process = new ServerProcess(CmdExe, "/c ping -n 30 127.0.0.1 >nul");
-        await using var server = new ManagedServer(profile, process) { AutoRestart = true };
+        await using var server = new ManagedServer(profile, process)
+        {
+            AutoRestart = true,
+            AutoRestartDelay = TimeSpan.FromMilliseconds(50),
+        };
         server.Start();
 
         server.Kill();
+        // Long enough to be sure a (wrongly) pending auto-restart would have fired by now.
         await Task.Delay(500);
 
         Assert.Equal(ServerStatus.Stopped, server.Status);
+    }
+
+    private static async Task WaitUntilAsync(Func<bool> condition, int timeoutMs = 5000)
+    {
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        while (!condition() && sw.ElapsedMilliseconds < timeoutMs)
+        {
+            await Task.Delay(20);
+        }
     }
 
     [Fact]

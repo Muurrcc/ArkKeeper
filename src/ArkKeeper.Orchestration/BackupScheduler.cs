@@ -65,4 +65,30 @@ public sealed class BackupScheduler
 
         return backupPath;
     }
+
+    /// <summary>Polls for the backup schedule every <paramref name="pollInterval"/> until cancelled
+    /// — mirrors <see cref="SchedulerRunner.RunLoopAsync"/> for callers that want the same pattern.</summary>
+    public async Task RunLoopAsync(RconClient rcon, string saveDirectory, TimeSpan pollInterval, CancellationToken cancellationToken)
+    {
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            try
+            {
+                await RunIfDueAsync(rcon, saveDirectory, DateTimeOffset.UtcNow, cancellationToken);
+            }
+            catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+            {
+                _logger.LogError(ex, "Scheduled backup attempt failed, will retry after the next interval");
+            }
+
+            try
+            {
+                await Task.Delay(pollInterval, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
+        }
+    }
 }
