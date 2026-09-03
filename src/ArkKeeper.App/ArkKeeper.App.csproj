@@ -34,6 +34,7 @@
     <ProjectReference Include="..\ArkKeeper.Networking\ArkKeeper.Networking.csproj" />
     <ProjectReference Include="..\ArkKeeper.Discord\ArkKeeper.Discord.csproj" />
     <ProjectReference Include="..\ArkKeeper.Updater\ArkKeeper.Updater.csproj" />
+    <ProjectReference Include="..\ArkKeeper.Orchestration\ArkKeeper.Orchestration.csproj" />
   </ItemGroup>
 
   <!-- SkiaSharp/HarfBuzzSharp ship their native debug symbols (.pdb) as content, which

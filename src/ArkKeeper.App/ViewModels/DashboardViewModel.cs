@@ -1,30 +1,35 @@
 using System.Collections.ObjectModel;
 using System.Linq;
-using ArkKeeper.Core.Profiles;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace ArkKeeper.App.ViewModels;
 
 public partial class DashboardViewModel : ViewModelBase
 {
-    public DashboardViewModel(ObservableCollection<ServerProfile> profiles)
+    public DashboardViewModel(ObservableCollection<ServerRowViewModel> servers)
     {
-        Profiles = profiles;
-        Profiles.CollectionChanged += (_, _) => RefreshSummary();
+        Servers = servers;
+        Servers.CollectionChanged += (_, _) => RefreshSummary();
         RefreshSummary();
     }
 
-    public ObservableCollection<ServerProfile> Profiles { get; }
+    public ObservableCollection<ServerRowViewModel> Servers { get; }
 
     [ObservableProperty]
     public partial int ServerCount { get; set; }
 
     [ObservableProperty]
+    public partial int RunningCount { get; set; }
+
+    [ObservableProperty]
     public partial int TotalCapacity { get; set; }
 
-    private void RefreshSummary()
+    /// <summary>Re-derives the running count from each row's live status. Called alongside
+    /// <see cref="ServersViewModel.RefreshAll"/> on the same poll timer.</summary>
+    public void RefreshSummary()
     {
-        ServerCount = Profiles.Count;
-        TotalCapacity = Profiles.Sum(p => p.MaxPlayers);
+        ServerCount = Servers.Count;
+        RunningCount = Servers.Count(s => s.IsRunning);
+        TotalCapacity = Servers.Sum(s => s.Profile.MaxPlayers);
     }
 }
