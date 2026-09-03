@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using ArkKeeper.Core.Ini;
 using ArkKeeper.Core.Utils;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -137,6 +138,17 @@ public sealed partial class ServerProfile : ObservableObject
     [ObservableProperty]
     [property: IniSetting(IniFile.Game, "/Script/Engine.GameSession", "MaxPlayers")]
     private int _maxPlayers = 70;
+
+    #endregion
+
+    #region Launch-only settings (not written to any .ini file)
+
+    /// <summary>ARK map identifier (e.g. "TheIsland", "Ragnarok"), passed on the launch command line.</summary>
+    [ObservableProperty]
+    private string _mapName = "TheIsland";
+
+    /// <summary>Steam Workshop mod ids, in load order, passed via -mods= on the launch command line.</summary>
+    public ObservableCollection<string> ModIds { get; init; } = new();
 
     #endregion
 
