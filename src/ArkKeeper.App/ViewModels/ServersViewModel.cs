@@ -2,16 +2,28 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using ArkKeeper.Core.Profiles;
 using ArkKeeper.Orchestration;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace ArkKeeper.App.ViewModels;
 
-public sealed class ServersViewModel : ViewModelBase
+public sealed partial class ServersViewModel : ViewModelBase
 {
     private readonly ServerFleet _fleet;
+    private readonly ProfileStore _profileStore;
+    private readonly ObservableCollection<ServerProfile> _profiles;
+    private readonly Action<ServerProfile?> _openEditor;
 
-    public ServersViewModel(ObservableCollection<ServerProfile> profiles, ServerFleet fleet)
+    public ServersViewModel(
+        ObservableCollection<ServerProfile> profiles,
+        ServerFleet fleet,
+        ProfileStore profileStore,
+        Action<ServerProfile?> openEditor)
     {
+        _profiles = profiles;
         _fleet = fleet;
+        _profileStore = profileStore;
+        _openEditor = openEditor;
 
         foreach (var profile in profiles)
         {
@@ -19,9 +31,13 @@ public sealed class ServersViewModel : ViewModelBase
         }
 
         profiles.CollectionChanged += OnProfilesChanged;
+        IsEmpty = Servers.Count == 0;
     }
 
     public ObservableCollection<ServerRowViewModel> Servers { get; } = new();
+
+    [ObservableProperty]
+    public partial bool IsEmpty { get; set; }
 
     /// <summary>Re-reads each server's live process status. Called on a poll timer since
     /// <see cref="ManagedServer"/> has no status-changed event to subscribe to.</summary>
@@ -31,6 +47,26 @@ public sealed class ServersViewModel : ViewModelBase
         {
             server.Refresh();
         }
+    }
+
+    [RelayCommand]
+    private void AddServer() => _openEditor(null);
+
+    [RelayCommand]
+    private void Edit(ServerRowViewModel row) => _openEditor(row.Profile);
+
+    [RelayCommand]
+    private async Task DeleteAsync(ServerRowViewModel row)
+    {
+        if (row.IsRunning)
+        {
+            row.ErrorMessage = "Stop the server before deleting its profile.";
+            return;
+        }
+
+        await _fleet.RemoveAsync(row.Profile.ProfileId);
+        _profileStore.Delete(row.Profile.ProfileId);
+        _profiles.Remove(row.Profile);
     }
 
     private void OnProfilesChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -54,5 +90,7 @@ public sealed class ServersViewModel : ViewModelBase
                 }
             }
         }
+
+        IsEmpty = Servers.Count == 0;
     }
 }

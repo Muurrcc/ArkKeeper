@@ -18,6 +18,7 @@ public sealed class ViewLocator : IDataTemplate
         [typeof(DashboardViewModel)] = () => new DashboardView(),
         [typeof(ServersViewModel)] = () => new ServersView(),
         [typeof(SettingsViewModel)] = () => new SettingsView(),
+        [typeof(ProfileEditorViewModel)] = () => new ProfileEditorView(),
     };
 
     public Control? Build(object? param)

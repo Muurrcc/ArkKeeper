@@ -23,7 +23,7 @@ public partial class MainViewModel : ViewModelBase
     {
         _profileStore = profileStore;
 
-        ServersPage = new ServersViewModel(Profiles, fleet);
+        ServersPage = new ServersViewModel(Profiles, fleet, _profileStore, OpenEditor);
         DashboardPage = new DashboardViewModel(ServersPage.Servers);
         SettingsPage = new SettingsViewModel();
 
@@ -51,40 +51,15 @@ public partial class MainViewModel : ViewModelBase
 
     public async Task InitializeAsync()
     {
-        var loaded = await _profileStore.LoadAllAsync();
-
-        if (loaded.Count == 0)
-        {
-            foreach (var sample in SampleProfiles())
-            {
-                Profiles.Add(sample);
-            }
-            return;
-        }
-
-        foreach (var profile in loaded)
+        foreach (var profile in await _profileStore.LoadAllAsync())
         {
             Profiles.Add(profile);
         }
     }
 
-    private static IEnumerable<ServerProfile> SampleProfiles()
-    {
-        yield return new ServerProfile
-        {
-            ProfileName = "The Island (sample)",
-            SessionName = "ArkKeeper - The Island",
-            Port = 7777,
-            MaxPlayers = 20,
-            PveMode = true,
-        };
-        yield return new ServerProfile
-        {
-            ProfileName = "Ragnarok (sample)",
-            SessionName = "ArkKeeper - Ragnarok",
-            Port = 7787,
-            MaxPlayers = 50,
-            XpMultiplier = 2.0f,
-        };
-    }
+    /// <summary>Opens the create/edit form, swapping it into the content area. Passed down to
+    /// <see cref="ServersViewModel"/> as a delegate rather than having it own navigation itself —
+    /// only MainViewModel knows about <see cref="SelectedPage"/>.</summary>
+    private void OpenEditor(ServerProfile? existing) =>
+        SelectedPage = new ProfileEditorViewModel(existing, Profiles, _profileStore, () => SelectedPage = ServersPage);
 }

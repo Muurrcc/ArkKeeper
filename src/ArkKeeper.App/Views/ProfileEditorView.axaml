@@ -1,0 +1,158 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:ArkKeeper.App.ViewModels"
+             xmlns:conv="using:ArkKeeper.App.Converters"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="ArkKeeper.App.Views.ProfileEditorView"
+             x:DataType="vm:ProfileEditorViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.FieldLabel">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Opacity" Value="0.8" />
+        </Style>
+        <Style Selector="Grid.FieldRow">
+            <Setter Property="Margin" Value="0,0,0,10" />
+        </Style>
+    </UserControl.Styles>
+
+    <DockPanel Margin="24">
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+            <TextBlock Grid.Column="0" FontSize="24" FontWeight="SemiBold"
+                       Text="{Binding IsNew, Converter={x:Static conv:BoolToNewOrEditTitleConverter.Instance}}" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                <Button Content="Cancel" Command="{Binding CancelCommand}" />
+                <Button Content="Save" Command="{Binding SaveCommand}" Classes="accent" />
+            </StackPanel>
+        </Grid>
+
+        <TextBlock DockPanel.Dock="Top"
+                   Text="{Binding ErrorMessage}"
+                   IsVisible="{Binding ErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}"
+                   Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                   Margin="0,0,0,12" TextWrapping="Wrap" />
+
+        <ScrollViewer>
+            <StackPanel Spacing="12" MaxWidth="640" HorizontalAlignment="Left">
+
+                <Expander Header="General" IsExpanded="True">
+                    <StackPanel Margin="0,12,0,0">
+                        <Grid Classes="FieldRow" ColumnDefinitions="200,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Profile name" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.ProfileName}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="200,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Session name (shown in-game)" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.SessionName}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="200,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Map" />
+                            <AutoCompleteBox Grid.Column="1" ItemsSource="{Binding AvailableMaps}"
+                                              Text="{Binding Profile.MapName}" FilterMode="StartsWith" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="200,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Install directory" />
+                            <Grid Grid.Column="1" ColumnDefinitions="*,Auto">
+                                <TextBox Grid.Column="0" Text="{Binding Profile.InstallDirectory}"
+                                          PlaceholderText="Where SteamCMD installed the server" />
+                                <Button Grid.Column="1" Content="Browse..." Margin="8,0,0,0"
+                                        Click="OnBrowseInstallDirectoryClick" />
+                            </Grid>
+                        </Grid>
+                    </StackPanel>
+                </Expander>
+
+                <Expander Header="Network" IsExpanded="True">
+                    <StackPanel Margin="0,12,0,0">
+                        <Grid Classes="FieldRow" ColumnDefinitions="200,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Game port" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.Port}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="200,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Query port" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.QueryPort}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="200,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="RCON enabled" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.RconEnabled}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="200,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="RCON port" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.RconPort}" />
+                        </Grid>
+                    </StackPanel>
+                </Expander>
+
+                <Expander Header="Passwords" IsExpanded="False">
+                    <StackPanel Margin="0,12,0,0">
+                        <Grid Classes="FieldRow" ColumnDefinitions="200,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Server password (empty = public)" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.ServerPassword}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="200,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Admin password" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.AdminPassword}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="200,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Spectator password" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.SpectatorPassword}" />
+                        </Grid>
+                    </StackPanel>
+                </Expander>
+
+                <Expander Header="Rules" IsExpanded="False">
+                    <StackPanel Margin="0,12,0,0">
+                        <Grid Classes="FieldRow" ColumnDefinitions="200,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Max players" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.MaxPlayers}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="200,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="PvE mode" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.PveMode}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="200,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Hardcore" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.Hardcore}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="200,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Show crosshair" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.ShowCrosshair}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="200,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Allow third person" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.AllowThirdPerson}" />
+                        </Grid>
+                    </StackPanel>
+                </Expander>
+
+                <Expander Header="Rates &amp; multipliers" IsExpanded="False">
+                    <StackPanel Margin="0,12,0,0">
+                        <Grid Classes="FieldRow" ColumnDefinitions="200,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Difficulty offset" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.DifficultyOffset}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="200,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="XP multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.XpMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="200,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Taming speed multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.TamingSpeedMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="200,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Harvest amount multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.HarvestAmountMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="200,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Day cycle speed scale" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.DayCycleSpeedScale}" />
+                        </Grid>
+                    </StackPanel>
+                </Expander>
+
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>

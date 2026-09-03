@@ -6,10 +6,19 @@
              xmlns:conv="using:ArkKeeper.App.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="ArkKeeper.App.Views.ServersView"
-             x:DataType="vm:ServersViewModel">
+             x:DataType="vm:ServersViewModel"
+             x:Name="Root">
 
     <DockPanel Margin="24">
-        <TextBlock DockPanel.Dock="Top" Text="Servers" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,16" />
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+            <TextBlock Grid.Column="0" Text="Servers" FontSize="24" FontWeight="SemiBold" />
+            <Button Grid.Column="1" Content="Add server" Command="{Binding AddServerCommand}" />
+        </Grid>
+
+        <TextBlock DockPanel.Dock="Top"
+                   Text="No servers yet — click &quot;Add server&quot; to create your first profile."
+                   Opacity="0.7" Margin="0,0,0,16"
+                   IsVisible="{Binding IsEmpty}" />
 
         <ItemsControl ItemsSource="{Binding Servers}">
             <ItemsControl.ItemTemplate>
@@ -48,6 +57,12 @@
                                     <Button Content="Start" Command="{Binding StartCommand}" />
                                     <Button Content="Stop" Command="{Binding StopCommand}" />
                                     <Button Content="Kill" Command="{Binding KillCommand}" />
+                                    <Button Content="Edit"
+                                            Command="{Binding #Root.((vm:ServersViewModel)DataContext).EditCommand}"
+                                            CommandParameter="{Binding}" />
+                                    <Button Content="Delete"
+                                            Command="{Binding #Root.((vm:ServersViewModel)DataContext).DeleteCommand}"
+                                            CommandParameter="{Binding}" />
                                 </StackPanel>
                             </Grid>
 
