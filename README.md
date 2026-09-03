@@ -6,37 +6,37 @@
 ![.NET 10](https://img.shields.io/badge/.NET-10-512BD4?style=flat&logo=dotnet&logoColor=white)
 ![Avalonia](https://img.shields.io/badge/UI-Avalonia-6D2BA1?style=flat)
 ![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)
-![Status](https://img.shields.io/badge/status-en%20desarrollo-orange)
+![Status](https://img.shields.io/badge/status-in%20development-orange)
 
-ArkKeeper es una **modernización y optimización** de [ARK Server Manager](https://arkservermanager.freeforums.net/), la herramienta clásica en WPF/.NET Framework para administrar servidores dedicados de *ARK: Survival Evolved*. No es un proyecto original desde cero: es una reescritura del mismo código base — original de [ChronosWS/ARK-Dedicated-Server-Tool](https://github.com/ChronosWS/ARK-Dedicated-Server-Tool) — sobre .NET 10 y Avalonia, con una interfaz moderna estilo Windows 11 (Mica, esquinas redondeadas, tema claro/oscuro, acento de color) y con soporte multiplataforma habilitado desde el diseño.
+ArkKeeper is a **modernization and optimization** of [ARK Server Manager](https://arkservermanager.freeforums.net/), the classic WPF/.NET Framework tool for administering dedicated *ARK: Survival Evolved* servers. It isn't an original project built from scratch: it's a rewrite of the same codebase — originally from [ChronosWS/ARK-Dedicated-Server-Tool](https://github.com/ChronosWS/ARK-Dedicated-Server-Tool) — on top of .NET 10 and Avalonia, with a modern Windows 11-style interface (Mica, rounded corners, light/dark theme, accent color) and cross-platform support built in from the design stage.
 
-> **Aviso legal:** ArkKeeper y sus autores no están afiliados con Studio Wildcard ni sus socios. *ARK: Survival Evolved™* y sus imágenes, marcas y derechos relacionados son propiedad exclusiva de Studio Wildcard y/o sus afiliados. Herramienta gratuita para uso legal.
+> **Legal notice:** ArkKeeper and its authors are not affiliated with Studio Wildcard or its partners. *ARK: Survival Evolved™* and its related images, trademarks, and rights are the exclusive property of Studio Wildcard and/or its affiliates. Free tool for legal use.
 
-## Qué hace (en construcción)
+## What it does (work in progress)
 
-ArkKeeper reimplementa, con paridad progresiva, las funciones del proyecto original:
+ArkKeeper reimplements, with progressive parity, the features of the original project:
 
-- **Gestión de servidores**: perfiles múltiples, configuración global y por servidor, arranque/parada/reinicio.
-- **Consola RCON**: envío de comandos y monitoreo en vivo.
-- **Jugadores y tribus**: listados, perfiles, gestión de baneos.
-- **Mods**: integración con Steam Workshop.
-- **Discord**: notificaciones y comandos desde el servidor.
-- **Backups**: guardado y restauración de mundos.
-- **Auto-actualización** del servidor y de la propia herramienta.
+- **Server management**: multiple profiles, global and per-server configuration, start/stop/restart.
+- **RCON console**: send commands and monitor live.
+- **Players and tribes**: listings, profiles, ban management.
+- **Mods**: Steam Workshop integration.
+- **Discord**: notifications and commands from the server.
+- **Backups**: world save and restore.
+- **Auto-update** for both the server and the tool itself.
 
-El estado real de avance se refleja en los commits y en los issues de este repositorio — no en esta lista, que describe el objetivo final.
+The actual state of progress is reflected in this repository's commits and issues — not in this list, which describes the end goal.
 
 ## Screenshots
 
-_(Se agregan cuando la Fase 2 del roadmap tenga la primera UI navegable — ver [Issues](../../issues))_
+_(Added once Phase 2 of the roadmap has the first navigable UI — see [Issues](../../issues))_
 
-## Instalación
+## Installation
 
-_(Pendiente hasta la primera release publicada — mientras tanto, compílalo tú mismo, ver abajo)_
+_(Pending until the first published release — in the meantime, build it yourself, see below)_
 
 ## Build from Source
 
-Requisitos: [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+Requirements: [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 
 ```bash
 git clone https://github.com/Muurrcc/ArkKeeper.git
@@ -45,42 +45,42 @@ dotnet build
 dotnet run --project src/ArkKeeper.App
 ```
 
-### Publicar un build optimizado
+### Publishing an optimized build
 
 ```bash
-# Requiere .NET 10 instalado en la máquina destino (~36 MB)
+# Requires .NET 10 installed on the target machine (~36 MB)
 dotnet publish src/ArkKeeper.App -c Release -r win-x64 --self-contained false
 
-# No requiere .NET instalado (~113 MB, incluye el runtime)
+# No .NET installation required (~113 MB, includes the runtime)
 dotnet publish src/ArkKeeper.App -c Release -r win-x64 --self-contained true
 
-# Igual que el anterior, pero con trimming (~48 MB)
+# Same as above, but trimmed (~48 MB)
 dotnet publish src/ArkKeeper.App -c Release -r win-x64 --self-contained true -p:PublishTrimmed=true
 ```
 
-## Optimización
+## Optimization
 
-Comparado con un `dotnet publish` genérico (sin RID), fijar el target a `win-x64` evita empaquetar los binarios nativos de Skia/HarfBuzz de *todas* las plataformas soportadas y elimina símbolos de depuración nativos que no aportan nada en una build de release:
+Compared to a generic `dotnet publish` (no RID), pinning the target to `win-x64` avoids bundling the native Skia/HarfBuzz binaries for *every* supported platform and strips native debug symbols that add nothing to a release build:
 
-| Build | Tamaño |
+| Build | Size |
 |---|---|
-| Genérico (`dotnet publish`, sin RID) | 570 MB |
+| Generic (`dotnet publish`, no RID) | 570 MB |
 | `win-x64`, framework-dependent | **36 MB** |
-| `win-x64`, self-contained (incluye runtime) | 113 MB |
+| `win-x64`, self-contained (includes runtime) | 113 MB |
 | `win-x64`, self-contained + trimmed | **48 MB** |
 
-Arranque hasta ventana visible (framework-dependent, promedio de 3 mediciones): **~656 ms**.
+Startup time to visible window (framework-dependent, average of 3 measurements): **~656 ms**.
 
-El trimming (`PublishTrimmed`) funciona de punta a punta, verificado lanzando el `.exe` publicado — hizo falta arreglar dos cosas primero:
+Trimming (`PublishTrimmed`) works end to end, verified by launching the published `.exe` — it took fixing two things first:
 
-- **`ViewLocator`** resolvía Vista↔ViewModel por reflexión (`Type.GetType` con el nombre como string); el trimmer elimina tipos que nada referencia estáticamente, así que rompía en producción ("Not Found: DashboardView"). Se reemplazó por un mapeo explícito sin reflexión.
-- **Serialización de `ServerProfile`**: el generador de `System.Text.Json` no ve las propiedades que `CommunityToolkit.Mvvm` genera a partir de `[ObservableProperty]` — al serializar directamente perdía casi todos los datos del perfil de forma silenciosa (se detectó inspeccionando el JSON real, no por ningún warning o error). `ProfileStore` ahora serializa a través de `ServerProfileData`, un snapshot plano escrito a mano pensado justo para esto — ver el comentario en ese archivo.
+- **`ViewLocator`** resolved View↔ViewModel by reflection (`Type.GetType` with the name as a string); the trimmer removes types nothing references statically, so this broke in production ("Not Found: DashboardView"). Replaced with an explicit, reflection-free mapping.
+- **`ServerProfile` serialization**: the `System.Text.Json` source generator doesn't see the properties `CommunityToolkit.Mvvm` generates from `[ObservableProperty]` — serializing it directly silently dropped almost all of the profile's data (found by inspecting the actual JSON, not from any warning or error). `ProfileStore` now serializes through `ServerProfileData`, a flat, hand-written snapshot built exactly for this — see the comment in that file.
 
-Con ambos arreglos, `dotnet publish ... -p:PublishTrimmed=true` no deja ningún warning de trimming propio del proyecto (solo quedan dos, ninguno nuestro: uno de bajo riesgo en el motor de `.ini` por reflexión genérica, y uno del control `DataGrid` de FluentAvalonia que ni siquiera usamos todavía).
+With both fixes in place, `dotnet publish ... -p:PublishTrimmed=true` leaves no trimming warnings of its own (only two remain, neither ours: a low-risk one in the `.ini` engine from generic reflection, and one from FluentAvalonia's `DataGrid` control, which isn't even used yet).
 
-## Stack tecnológico
+## Tech stack
 
-| Capa | Tecnología |
+| Layer | Technology |
 |---|---|
 | UI | [Avalonia UI](https://avaloniaui.net/) + [FluentAvalonia](https://github.com/amwx/FluentAvalonia) |
 | MVVM | [CommunityToolkit.Mvvm](https://github.com/CommunityToolkit/dotnet) |
@@ -88,10 +88,10 @@ Con ambos arreglos, `dotnet publish ... -p:PublishTrimmed=true` no deja ningún 
 | Logging | Microsoft.Extensions.Logging |
 | Runtime | .NET 10 |
 
-## Créditos
+## Credits
 
-Basado en el trabajo original de [ChronosWS](https://github.com/ChronosWS) y la comunidad de [ARK Server Manager](https://arkservermanager.freeforums.net/), publicado bajo GPL-3.0.
+Based on the original work by [ChronosWS](https://github.com/ChronosWS) and the [ARK Server Manager](https://arkservermanager.freeforums.net/) community, published under GPL-3.0.
 
-## Licencia
+## License
 
-[GPL-3.0](LICENSE) — al ser un derivado de un proyecto GPL-3.0, ArkKeeper se distribuye bajo los mismos términos: código fuente siempre disponible, y cualquier fork o modificación debe mantenerse abierto bajo esta misma licencia.
+[GPL-3.0](LICENSE) — as a derivative of a GPL-3.0 project, ArkKeeper is distributed under the same terms: source code always available, and any fork or modification must remain open under this same license.
