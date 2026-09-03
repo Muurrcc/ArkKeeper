@@ -1,5 +1,6 @@
 # ArkKeeper
 
+[![Build & Test](https://github.com/Muurrcc/ArkKeeper/actions/workflows/build.yml/badge.svg)](https://github.com/Muurrcc/ArkKeeper/actions/workflows/build.yml)
 ![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat&logo=windows&logoColor=white)
 ![Linux-ready](https://img.shields.io/badge/Linux--ready-FCC624?style=flat&logo=linux&logoColor=black)
 ![.NET 10](https://img.shields.io/badge/.NET-10-512BD4?style=flat&logo=dotnet&logoColor=white)
@@ -84,6 +85,7 @@ Con ambos arreglos, `dotnet publish ... -p:PublishTrimmed=true` no deja ningún 
 | UI | [Avalonia UI](https://avaloniaui.net/) + [FluentAvalonia](https://github.com/amwx/FluentAvalonia) |
 | MVVM | [CommunityToolkit.Mvvm](https://github.com/CommunityToolkit/dotnet) |
 | DI / Hosting | Microsoft.Extensions.Hosting |
+| Logging | Microsoft.Extensions.Logging |
 | Runtime | .NET 10 |
 
 ## Créditos

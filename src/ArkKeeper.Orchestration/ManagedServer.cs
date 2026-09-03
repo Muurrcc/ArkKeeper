@@ -3,6 +3,8 @@ using ArkKeeper.Core.Servers;
 using ArkKeeper.Discord;
 using ArkKeeper.Networking.Rcon;
 using ArkKeeper.Networking.Servers;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ArkKeeper.Orchestration;
 
@@ -15,19 +17,21 @@ namespace ArkKeeper.Orchestration;
 public sealed class ManagedServer : IAsyncDisposable
 {
     private readonly ServerProcess _process;
+    private readonly ILogger _logger;
     private RconClient? _rcon;
 
-    public ManagedServer(ServerProfile profile, DiscordWebhookNotifier? notifier = null)
-        : this(profile, ServerProcess.ForProfile(profile), notifier)
+    public ManagedServer(ServerProfile profile, DiscordWebhookNotifier? notifier = null, ILogger<ManagedServer>? logger = null)
+        : this(profile, ServerProcess.ForProfile(profile), notifier, logger)
     {
     }
 
     /// <summary>Lets a caller supply the <see cref="ServerProcess"/> directly — mainly so tests
     /// can pass a harmless stand-in process instead of the real server executable.</summary>
-    public ManagedServer(ServerProfile profile, ServerProcess process, DiscordWebhookNotifier? notifier = null)
+    public ManagedServer(ServerProfile profile, ServerProcess process, DiscordWebhookNotifier? notifier = null, ILogger<ManagedServer>? logger = null)
     {
         Profile = profile;
         Notifier = notifier;
+        _logger = logger ?? NullLogger<ManagedServer>.Instance;
         _process = process;
         _process.Exited += OnProcessExited;
     }
@@ -42,7 +46,9 @@ public sealed class ManagedServer : IAsyncDisposable
 
     public void Start()
     {
+        _logger.LogInformation("Starting server {SessionName}", Profile.SessionName);
         _process.Start();
+        _logger.LogInformation("Server {SessionName} started, PID {ProcessId}", Profile.SessionName, _process.ProcessId);
         FireAndForgetNotify(n => n.NotifyServerStartedAsync(Profile.SessionName));
     }
 
@@ -50,12 +56,18 @@ public sealed class ManagedServer : IAsyncDisposable
     /// the process if that doesn't work within <paramref name="timeout"/>.</summary>
     public async Task StopAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
     {
+        _logger.LogInformation("Stopping server {SessionName} (graceful, timeout {Timeout})", Profile.SessionName, timeout);
         var rcon = await GetOrConnectRconAsync(cancellationToken);
         await GracefulShutdown.StopAsync(_process, rcon, timeout, cancellationToken);
+        _logger.LogInformation("Server {SessionName} stopped", Profile.SessionName);
     }
 
     /// <summary>Immediately terminates the process without attempting a graceful RCON shutdown.</summary>
-    public void Kill() => _process.Kill();
+    public void Kill()
+    {
+        _logger.LogWarning("Killing server {SessionName} without a graceful RCON shutdown", Profile.SessionName);
+        _process.Kill();
+    }
 
     public async Task<string> SendRconCommandAsync(string command, CancellationToken cancellationToken = default)
     {
@@ -79,8 +91,11 @@ public sealed class ManagedServer : IAsyncDisposable
         return _rcon;
     }
 
-    private void OnProcessExited(object? sender, EventArgs e) =>
+    private void OnProcessExited(object? sender, EventArgs e)
+    {
+        _logger.LogWarning("Server {SessionName} process exited", Profile.SessionName);
         FireAndForgetNotify(n => n.NotifyServerStoppedAsync(Profile.SessionName));
+    }
 
     private void FireAndForgetNotify(Func<DiscordWebhookNotifier, Task> notify)
     {

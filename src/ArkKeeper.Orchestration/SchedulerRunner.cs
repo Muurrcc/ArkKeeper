@@ -1,5 +1,7 @@
 using ArkKeeper.Core.Scheduling;
 using ArkKeeper.Networking.Rcon;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ArkKeeper.Orchestration;
 
@@ -10,6 +12,12 @@ namespace ArkKeeper.Orchestration;
 public sealed class SchedulerRunner
 {
     private readonly List<TaskSchedule> _schedules = new();
+    private readonly ILogger _logger;
+
+    public SchedulerRunner(ILogger<SchedulerRunner>? logger = null)
+    {
+        _logger = logger ?? NullLogger<SchedulerRunner>.Instance;
+    }
 
     public IReadOnlyList<TaskSchedule> Schedules => _schedules;
 
@@ -23,7 +31,7 @@ public sealed class SchedulerRunner
     public void Remove(TaskSchedule schedule) => _schedules.Remove(schedule);
 
     /// <summary>Runs every due task's command over RCON and advances its schedule. Returns the
-    /// tasks that ran, in case a caller wants to log/notify.</summary>
+    /// tasks that ran, in case a caller wants to notify.</summary>
     public async Task<IReadOnlyList<ScheduledTask>> RunDueTasksAsync(
         RconClient rcon, DateTimeOffset now, CancellationToken cancellationToken = default)
     {
@@ -36,7 +44,18 @@ public sealed class SchedulerRunner
                 continue;
             }
 
-            await rcon.ExecuteCommandAsync(schedule.Task.Command, cancellationToken);
+            _logger.LogInformation("Running scheduled task {TaskName}: {Command}", schedule.Task.Name, schedule.Task.Command);
+
+            try
+            {
+                await rcon.ExecuteCommandAsync(schedule.Task.Command, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Scheduled task {TaskName} failed", schedule.Task.Name);
+                throw;
+            }
+
             schedule.MarkRan(now);
             ran.Add(schedule.Task);
         }
@@ -49,7 +68,14 @@ public sealed class SchedulerRunner
     {
         while (!cancellationToken.IsCancellationRequested)
         {
-            await RunDueTasksAsync(rcon, DateTimeOffset.UtcNow, cancellationToken);
+            try
+            {
+                await RunDueTasksAsync(rcon, DateTimeOffset.UtcNow, cancellationToken);
+            }
+            catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+            {
+                _logger.LogError(ex, "Scheduler poll iteration failed, will retry after the next interval");
+            }
 
             try
             {
