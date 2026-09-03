@@ -1,0 +1,46 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:ArkKeeper.App.ViewModels"
+             xmlns:profiles="using:ArkKeeper.Core.Profiles"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="ArkKeeper.App.Views.DashboardView"
+             x:DataType="vm:DashboardViewModel">
+
+    <StackPanel Margin="24" Spacing="16">
+        <TextBlock Text="Dashboard" FontSize="24" FontWeight="SemiBold" />
+
+        <StackPanel Orientation="Horizontal" Spacing="16">
+            <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    CornerRadius="8" Padding="16" Width="180">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="{Binding ServerCount}" FontSize="28" FontWeight="Bold" />
+                    <TextBlock Text="Server profiles" Opacity="0.7" />
+                </StackPanel>
+            </Border>
+            <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    CornerRadius="8" Padding="16" Width="180">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="{Binding TotalCapacity}" FontSize="28" FontWeight="Bold" />
+                    <TextBlock Text="Total player slots" Opacity="0.7" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <TextBlock Text="Servers" FontSize="16" FontWeight="SemiBold" Margin="0,8,0,0" />
+        <ItemsControl ItemsSource="{Binding Profiles}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="profiles:ServerProfile">
+                    <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                            CornerRadius="6" Padding="12" Margin="0,0,0,8">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <TextBlock Text="{Binding ProfileName}" FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding SessionName}" Opacity="0.7" />
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </StackPanel>
+</UserControl>

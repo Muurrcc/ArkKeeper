@@ -1,13 +1,18 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:ArkKeeper.App.ViewModels"
+        xmlns:ui="using:FluentAvalonia.UI.Controls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="620"
         x:Class="ArkKeeper.App.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="ArkKeeper.App">
+        Title="ArkKeeper"
+        Width="1000" Height="620"
+        Background="Transparent"
+        TransparencyLevelHint="Mica"
+        ExtendClientAreaToDecorationsHint="True">
 
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,
@@ -15,8 +20,24 @@
         <vm:MainViewModel />
     </Design.DataContext>
 
-    <TextBox Text="{Binding Greeting}"
-             HorizontalAlignment="Center"
-             VerticalAlignment="Center" />
+    <ui:FANavigationView x:Name="NavView"
+                          PaneDisplayMode="Left"
+                          IsSettingsVisible="True"
+                          OpenPaneLength="220"
+                          SelectionChanged="OnNavSelectionChanged">
+        <ui:FANavigationView.MenuItems>
+            <ui:FANavigationViewItem Content="Dashboard" Tag="{Binding DashboardPage}" IsSelected="True">
+                <ui:FANavigationViewItem.IconSource>
+                    <ui:FASymbolIconSource Symbol="Home" />
+                </ui:FANavigationViewItem.IconSource>
+            </ui:FANavigationViewItem>
+            <ui:FANavigationViewItem Content="Servers" Tag="{Binding ServersPage}">
+                <ui:FANavigationViewItem.IconSource>
+                    <ui:FASymbolIconSource Symbol="List" />
+                </ui:FANavigationViewItem.IconSource>
+            </ui:FANavigationViewItem>
+        </ui:FANavigationView.MenuItems>
 
+        <ContentControl Content="{Binding SelectedPage}" Margin="8" />
+    </ui:FANavigationView>
 </Window>

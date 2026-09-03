@@ -1,0 +1,38 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:ArkKeeper.App.ViewModels"
+             xmlns:services="using:ArkKeeper.App.Services"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="ArkKeeper.App.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+
+    <StackPanel Margin="24" Spacing="20" MaxWidth="480">
+        <TextBlock Text="Settings" FontSize="24" FontWeight="SemiBold" />
+
+        <StackPanel Spacing="8">
+            <TextBlock Text="Appearance" FontWeight="SemiBold" />
+            <ToggleSwitch Content="Dark theme" IsChecked="{Binding IsDarkTheme}" />
+        </StackPanel>
+
+        <StackPanel Spacing="8">
+            <TextBlock Text="Accent color" FontWeight="SemiBold" />
+            <ItemsControl ItemsSource="{Binding AccentSwatches}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" Spacing="10" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="services:AccentSwatch">
+                        <Button Width="32" Height="32" CornerRadius="16" Padding="0"
+                                Background="{Binding Brush}" ToolTip.Tip="{Binding Name}"
+                                Command="{Binding $parent[ItemsControl].DataContext.ApplyAccentCommand}"
+                                CommandParameter="{Binding}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </StackPanel>
+</UserControl>
