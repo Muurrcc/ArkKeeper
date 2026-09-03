@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\ArkKeeper.Core\ArkKeeper.Core.csproj" />
+    <ProjectReference Include="..\ArkKeeper.Networking\ArkKeeper.Networking.csproj" />
+    <ProjectReference Include="..\ArkKeeper.Discord\ArkKeeper.Discord.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>
