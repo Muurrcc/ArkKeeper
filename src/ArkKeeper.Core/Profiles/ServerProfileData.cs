@@ -43,6 +43,7 @@ public sealed class ServerProfileData
     public int MaxPlayers { get; set; }
     public string MapName { get; set; } = string.Empty;
     public List<string> ModIds { get; set; } = new();
+    public string InstallDirectory { get; set; } = string.Empty;
 }
 
 [JsonSourceGenerationOptions(WriteIndented = true)]

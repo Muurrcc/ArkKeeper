@@ -150,7 +150,17 @@ public sealed partial class ServerProfile : ObservableObject
     /// <summary>Steam Workshop mod ids, in load order, passed via -mods= on the launch command line.</summary>
     public ObservableCollection<string> ModIds { get; init; } = new();
 
+    /// <summary>Where SteamCMD installs (and the dedicated server runs from). Empty until the
+    /// server files have been installed for this profile.</summary>
+    [ObservableProperty]
+    private string _installDirectory = string.Empty;
+
     #endregion
+
+    /// <summary>Full path to the Windows dedicated server executable under <see cref="InstallDirectory"/>,
+    /// as reported by Steam's own app manifest for app 376030 (ARK: Survival Evolved Dedicated Server).</summary>
+    public string GetServerExecutablePath() =>
+        Path.Combine(InstallDirectory, "ShooterGame", "Binaries", "Win64", "ShooterGameServer.exe");
 
     /// <summary>Applies values found in <paramref name="gameUserSettings"/> and <paramref name="game"/> onto this profile.</summary>
     public void ImportFrom(IniDocument gameUserSettings, IniDocument game)
@@ -196,6 +206,7 @@ public sealed partial class ServerProfile : ObservableObject
         MaxPlayers = MaxPlayers,
         MapName = MapName,
         ModIds = new List<string>(ModIds),
+        InstallDirectory = InstallDirectory,
     };
 
     /// <summary>Rebuilds a <see cref="ServerProfile"/> from a snapshot produced by <see cref="ToData"/>.</summary>
@@ -229,6 +240,7 @@ public sealed partial class ServerProfile : ObservableObject
             StructureDamageMultiplier = data.StructureDamageMultiplier,
             MaxPlayers = data.MaxPlayers,
             MapName = data.MapName,
+            InstallDirectory = data.InstallDirectory,
         };
 
         foreach (var modId in data.ModIds)
