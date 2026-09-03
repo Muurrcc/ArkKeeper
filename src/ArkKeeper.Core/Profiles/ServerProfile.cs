@@ -164,4 +164,78 @@ public sealed partial class ServerProfile : ObservableObject
 
     /// <summary>Produces the Game.ini contents for this profile.</summary>
     public IniDocument ToGameIni() => IniSerializer.Write(this, IniFile.Game);
+
+    /// <summary>Snapshots this profile into a plain, JSON-source-gen-friendly <see cref="ServerProfileData"/>
+    /// (see that type's doc comment for why this indirection exists).</summary>
+    public ServerProfileData ToData() => new()
+    {
+        ProfileId = ProfileId,
+        ProfileName = ProfileName,
+        SessionName = SessionName,
+        Port = Port,
+        QueryPort = QueryPort,
+        ServerPassword = ServerPassword,
+        AdminPassword = AdminPassword,
+        RconEnabled = RconEnabled,
+        RconPort = RconPort,
+        PveMode = PveMode,
+        Hardcore = Hardcore,
+        ShowCrosshair = ShowCrosshair,
+        ShowMapPlayerLocation = ShowMapPlayerLocation,
+        AllowThirdPerson = AllowThirdPerson,
+        DisableStructureDecayPve = DisableStructureDecayPve,
+        DifficultyOffset = DifficultyOffset,
+        XpMultiplier = XpMultiplier,
+        TamingSpeedMultiplier = TamingSpeedMultiplier,
+        HarvestAmountMultiplier = HarvestAmountMultiplier,
+        ResourcesRespawnPeriodMultiplier = ResourcesRespawnPeriodMultiplier,
+        DayCycleSpeedScale = DayCycleSpeedScale,
+        DinoDamageMultiplier = DinoDamageMultiplier,
+        PlayerDamageMultiplier = PlayerDamageMultiplier,
+        StructureDamageMultiplier = StructureDamageMultiplier,
+        MaxPlayers = MaxPlayers,
+        MapName = MapName,
+        ModIds = new List<string>(ModIds),
+    };
+
+    /// <summary>Rebuilds a <see cref="ServerProfile"/> from a snapshot produced by <see cref="ToData"/>.</summary>
+    public static ServerProfile FromData(ServerProfileData data)
+    {
+        var profile = new ServerProfile
+        {
+            ProfileId = data.ProfileId,
+            ProfileName = data.ProfileName,
+            SessionName = data.SessionName,
+            Port = data.Port,
+            QueryPort = data.QueryPort,
+            ServerPassword = data.ServerPassword,
+            AdminPassword = data.AdminPassword,
+            RconEnabled = data.RconEnabled,
+            RconPort = data.RconPort,
+            PveMode = data.PveMode,
+            Hardcore = data.Hardcore,
+            ShowCrosshair = data.ShowCrosshair,
+            ShowMapPlayerLocation = data.ShowMapPlayerLocation,
+            AllowThirdPerson = data.AllowThirdPerson,
+            DisableStructureDecayPve = data.DisableStructureDecayPve,
+            DifficultyOffset = data.DifficultyOffset,
+            XpMultiplier = data.XpMultiplier,
+            TamingSpeedMultiplier = data.TamingSpeedMultiplier,
+            HarvestAmountMultiplier = data.HarvestAmountMultiplier,
+            ResourcesRespawnPeriodMultiplier = data.ResourcesRespawnPeriodMultiplier,
+            DayCycleSpeedScale = data.DayCycleSpeedScale,
+            DinoDamageMultiplier = data.DinoDamageMultiplier,
+            PlayerDamageMultiplier = data.PlayerDamageMultiplier,
+            StructureDamageMultiplier = data.StructureDamageMultiplier,
+            MaxPlayers = data.MaxPlayers,
+            MapName = data.MapName,
+        };
+
+        foreach (var modId in data.ModIds)
+        {
+            profile.ModIds.Add(modId);
+        }
+
+        return profile;
+    }
 }

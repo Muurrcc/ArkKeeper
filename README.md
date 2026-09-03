@@ -52,6 +52,9 @@ dotnet publish src/ArkKeeper.App -c Release -r win-x64 --self-contained false
 
 # No requiere .NET instalado (~113 MB, incluye el runtime)
 dotnet publish src/ArkKeeper.App -c Release -r win-x64 --self-contained true
+
+# Igual que el anterior, pero con trimming (~48 MB)
+dotnet publish src/ArkKeeper.App -c Release -r win-x64 --self-contained true -p:PublishTrimmed=true
 ```
 
 ## Optimización
@@ -63,10 +66,16 @@ Comparado con un `dotnet publish` genérico (sin RID), fijar el target a `win-x6
 | Genérico (`dotnet publish`, sin RID) | 570 MB |
 | `win-x64`, framework-dependent | **36 MB** |
 | `win-x64`, self-contained (incluye runtime) | 113 MB |
+| `win-x64`, self-contained + trimmed | **48 MB** |
 
 Arranque hasta ventana visible (framework-dependent, promedio de 3 mediciones): **~656 ms**.
 
-Se evaluó también `PublishTrimmed`/NativeAOT: tras corregir el `ViewLocator` (usaba reflexión para resolver Vista↔ViewModel, lo cual el trimmer rompía) el trimming de la UI funciona, pero quedó bloqueado por una incompatibilidad real entre generadores — el generador de `System.Text.Json` no ve las propiedades que `CommunityToolkit.Mvvm` genera a partir de `[ObservableProperty]`, así que perdía casi todos los datos al serializar un `ServerProfile`. `ProfileStore` se quedó con serialización por reflexión (documentado en el código) hasta resolver esto — queda como trabajo futuro, no bloquea el resto de la optimización.
+El trimming (`PublishTrimmed`) funciona de punta a punta, verificado lanzando el `.exe` publicado — hizo falta arreglar dos cosas primero:
+
+- **`ViewLocator`** resolvía Vista↔ViewModel por reflexión (`Type.GetType` con el nombre como string); el trimmer elimina tipos que nada referencia estáticamente, así que rompía en producción ("Not Found: DashboardView"). Se reemplazó por un mapeo explícito sin reflexión.
+- **Serialización de `ServerProfile`**: el generador de `System.Text.Json` no ve las propiedades que `CommunityToolkit.Mvvm` genera a partir de `[ObservableProperty]` — al serializar directamente perdía casi todos los datos del perfil de forma silenciosa (se detectó inspeccionando el JSON real, no por ningún warning o error). `ProfileStore` ahora serializa a través de `ServerProfileData`, un snapshot plano escrito a mano pensado justo para esto — ver el comentario en ese archivo.
+
+Con ambos arreglos, `dotnet publish ... -p:PublishTrimmed=true` no deja ningún warning de trimming propio del proyecto (solo quedan dos, ninguno nuestro: uno de bajo riesgo en el motor de `.ini` por reflexión genérica, y uno del control `DataGrid` de FluentAvalonia que ni siquiera usamos todavía).
 
 ## Stack tecnológico
 
