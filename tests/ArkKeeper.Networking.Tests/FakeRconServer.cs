@@ -29,6 +29,14 @@ internal sealed class FakeRconServer : IAsyncDisposable
     /// anything not explicitly set.</summary>
     public Func<string, string> ResponseProvider { get; set; } = _ => "OK";
 
+    /// <summary>Artificial delay before responding to each command — widens the window for tests
+    /// that need to land a concurrent call while a command is still in flight.</summary>
+    public TimeSpan ResponseDelay { get; set; } = TimeSpan.Zero;
+
+    /// <summary>If set, the server closes the connection after this many commands on it —
+    /// simulating a mid-session drop, so tests can verify a client's reconnect/retry logic.</summary>
+    public int? CloseConnectionAfterCommands { get; set; }
+
     public IReadOnlyList<string> ReceivedCommands
     {
         get { lock (_receivedCommands) { return _receivedCommands.ToArray(); } }
@@ -61,6 +69,8 @@ internal sealed class FakeRconServer : IAsyncDisposable
         await WritePacketAsync(stream, new RconPacket(0, RconPacketType.ResponseValue, string.Empty), cancellationToken);
         await WritePacketAsync(stream, new RconPacket(authPacket.Id, RconPacketType.ExecCommandOrAuthResponse, string.Empty), cancellationToken);
 
+        var commandsOnThisConnection = 0;
+
         while (!cancellationToken.IsCancellationRequested)
         {
             RconPacket command;
@@ -78,7 +88,18 @@ internal sealed class FakeRconServer : IAsyncDisposable
                 _receivedCommands.Add(command.Body);
             }
 
+            if (ResponseDelay > TimeSpan.Zero)
+            {
+                await Task.Delay(ResponseDelay, cancellationToken);
+            }
+
             await WritePacketAsync(stream, new RconPacket(command.Id, RconPacketType.ResponseValue, ResponseProvider(command.Body)), cancellationToken);
+
+            commandsOnThisConnection++;
+            if (CloseConnectionAfterCommands is { } limit && commandsOnThisConnection >= limit)
+            {
+                return;
+            }
         }
     }
 

@@ -19,6 +19,13 @@ public sealed class ManagedServer : IAsyncDisposable
 {
     private readonly ServerProcess _process;
     private readonly ILogger _logger;
+
+    // Guards every use of _rcon — not just who gets to (re)connect it, but who gets to send a
+    // command on it. RconClient has no per-command framing/id disambiguation of its own, so two
+    // ExecuteCommandAsync calls running concurrently on the *same* connection interleave their
+    // writes/reads and corrupt the stream (discovered via a genuinely concurrent test — an
+    // earlier version of this lock only serialized *connecting*, not *sending*, and hung).
+    private readonly SemaphoreSlim _rconLock = new(1, 1);
     private RconClient? _rcon;
     private bool _stopRequested;
     private CancellationTokenSource? _pendingRestartCts;
@@ -68,14 +75,26 @@ public sealed class ManagedServer : IAsyncDisposable
     }
 
     /// <summary>Stops the server the safe way: RCON SaveWorld+DoExit, falling back to killing
-    /// the process if that doesn't work within <paramref name="timeout"/>.</summary>
+    /// the process if that doesn't work within <paramref name="timeout"/>. Holds the RCON lock
+    /// for the whole operation, so no other RCON command can interleave with (or run against a
+    /// connection that's about to go away because of) the shutdown sequence.</summary>
     public async Task StopAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
     {
         _stopRequested = true;
         CancelPendingRestart();
         _logger.LogInformation("Stopping server {SessionName} (graceful, timeout {Timeout})", Profile.SessionName, timeout);
-        var rcon = await GetOrConnectRconAsync(cancellationToken);
-        await GracefulShutdown.StopAsync(_process, rcon, timeout, cancellationToken);
+
+        await _rconLock.WaitAsync(cancellationToken);
+        try
+        {
+            var rcon = await EnsureConnectedAsync(forceReconnect: false, cancellationToken);
+            await GracefulShutdown.StopAsync(_process, rcon, timeout, cancellationToken);
+        }
+        finally
+        {
+            _rconLock.Release();
+        }
+
         _logger.LogInformation("Server {SessionName} stopped", Profile.SessionName);
     }
 
@@ -91,43 +110,51 @@ public sealed class ManagedServer : IAsyncDisposable
     /// <summary>Sends an RCON command, retrying once with a fresh connection if it fails — RCON
     /// connections can go stale (e.g. the server restarted, or the TCP connection dropped
     /// silently) without <see cref="RconClient.IsConnected"/> having a way to detect that ahead
-    /// of time.</summary>
+    /// of time. Safe to call concurrently: each call holds the RCON lock for its whole
+    /// connect+send+read sequence, so overlapping calls queue up on one shared connection
+    /// instead of each opening their own or corrupting each other's reads.</summary>
     public async Task<string> SendRconCommandAsync(string command, CancellationToken cancellationToken = default)
     {
+        await _rconLock.WaitAsync(cancellationToken);
         try
         {
-            var rcon = await GetOrConnectRconAsync(cancellationToken);
-            return await rcon.ExecuteCommandAsync(command, cancellationToken);
+            var rcon = await EnsureConnectedAsync(forceReconnect: false, cancellationToken);
+            try
+            {
+                return await rcon.ExecuteCommandAsync(command, cancellationToken);
+            }
+            catch (Exception ex) when (ex is IOException or SocketException)
+            {
+                _logger.LogWarning(ex, "RCON command failed for {SessionName}, reconnecting and retrying once", Profile.SessionName);
+                var freshRcon = await EnsureConnectedAsync(forceReconnect: true, cancellationToken);
+                return await freshRcon.ExecuteCommandAsync(command, cancellationToken);
+            }
         }
-        catch (Exception ex) when (ex is IOException or SocketException)
+        finally
         {
-            _logger.LogWarning(ex, "RCON command failed for {SessionName}, reconnecting and retrying once", Profile.SessionName);
-            await ForceDisconnectRconAsync();
-            var rcon = await GetOrConnectRconAsync(cancellationToken);
-            return await rcon.ExecuteCommandAsync(command, cancellationToken);
+            _rconLock.Release();
         }
     }
 
-    private async Task<RconClient> GetOrConnectRconAsync(CancellationToken cancellationToken)
+    /// <summary>Returns the current RCON connection, or establishes one. Callers must already
+    /// hold <see cref="_rconLock"/> — this does no locking of its own.</summary>
+    private async Task<RconClient> EnsureConnectedAsync(bool forceReconnect, CancellationToken cancellationToken)
     {
-        if (_rcon is { IsConnected: true })
+        if (!forceReconnect && _rcon is { IsConnected: true })
         {
             return _rcon;
         }
 
-        await ForceDisconnectRconAsync();
-        _rcon = new RconClient();
-        await _rcon.ConnectAsync("127.0.0.1", Profile.RconPort, Profile.AdminPassword, cancellationToken);
-        return _rcon;
-    }
-
-    private async Task ForceDisconnectRconAsync()
-    {
         if (_rcon is not null)
         {
             await _rcon.DisposeAsync();
             _rcon = null;
         }
+
+        var rcon = new RconClient();
+        await rcon.ConnectAsync("127.0.0.1", Profile.RconPort, Profile.AdminPassword, cancellationToken);
+        _rcon = rcon;
+        return rcon;
     }
 
     private void OnProcessExited(object? sender, EventArgs e)
@@ -193,10 +220,22 @@ public sealed class ManagedServer : IAsyncDisposable
         _stopRequested = true;
         CancelPendingRestart();
         _process.Exited -= OnProcessExited;
-        if (_rcon is not null)
+
+        await _rconLock.WaitAsync();
+        try
         {
-            await _rcon.DisposeAsync();
+            if (_rcon is not null)
+            {
+                await _rcon.DisposeAsync();
+                _rcon = null;
+            }
         }
+        finally
+        {
+            _rconLock.Release();
+        }
+
+        _rconLock.Dispose();
         _process.Dispose();
     }
 }

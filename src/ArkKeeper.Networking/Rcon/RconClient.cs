@@ -3,10 +3,16 @@ using System.Net.Sockets;
 
 namespace ArkKeeper.Networking.Rcon;
 
-/// <summary>A Source RCON protocol client for sending admin commands to an ARK dedicated server.</summary>
+/// <summary>A Source RCON protocol client for sending admin commands to an ARK dedicated server.
+/// Thread-safe: <see cref="ConnectAsync"/> and <see cref="ExecuteCommandAsync"/> serialize
+/// against each other internally, since the protocol has no way to disambiguate interleaved
+/// writes/reads on one connection — two concurrent ExecuteCommandAsync calls without this would
+/// corrupt the stream (one could read the other's response, or the two writes could interleave
+/// mid-packet), discovered via a genuinely concurrent test rather than by inspection.</summary>
 public sealed class RconClient : IAsyncDisposable
 {
     private readonly TcpClient _tcpClient = new();
+    private readonly SemaphoreSlim _lock = new(1, 1);
     private NetworkStream? _stream;
     private int _nextPacketId = 1;
 
@@ -14,31 +20,47 @@ public sealed class RconClient : IAsyncDisposable
 
     public async Task ConnectAsync(string host, int port, string password, CancellationToken cancellationToken = default)
     {
-        await _tcpClient.ConnectAsync(host, port, cancellationToken);
-        _stream = _tcpClient.GetStream();
-
-        var authId = NextId();
-        await SendPacketAsync(new RconPacket(authId, RconPacketType.Auth, password), cancellationToken);
-
-        // The server sends an empty SERVERDATA_RESPONSE_VALUE packet before the real
-        // SERVERDATA_AUTH_RESPONSE packet — drain it first.
-        await ReceivePacketAsync(cancellationToken);
-        var authResponse = await ReceivePacketAsync(cancellationToken);
-
-        if (authResponse.Id != authId)
+        await _lock.WaitAsync(cancellationToken);
+        try
         {
-            throw new RconAuthenticationException();
+            await _tcpClient.ConnectAsync(host, port, cancellationToken);
+            _stream = _tcpClient.GetStream();
+
+            var authId = NextId();
+            await SendPacketAsync(new RconPacket(authId, RconPacketType.Auth, password), cancellationToken);
+
+            // The server sends an empty SERVERDATA_RESPONSE_VALUE packet before the real
+            // SERVERDATA_AUTH_RESPONSE packet — drain it first.
+            await ReceivePacketAsync(cancellationToken);
+            var authResponse = await ReceivePacketAsync(cancellationToken);
+
+            if (authResponse.Id != authId)
+            {
+                throw new RconAuthenticationException();
+            }
+        }
+        finally
+        {
+            _lock.Release();
         }
     }
 
     public async Task<string> ExecuteCommandAsync(string command, CancellationToken cancellationToken = default)
     {
-        EnsureConnected();
+        await _lock.WaitAsync(cancellationToken);
+        try
+        {
+            EnsureConnected();
 
-        var id = NextId();
-        await SendPacketAsync(new RconPacket(id, RconPacketType.ExecCommandOrAuthResponse, command), cancellationToken);
-        var response = await ReceivePacketAsync(cancellationToken);
-        return response.Body;
+            var id = NextId();
+            await SendPacketAsync(new RconPacket(id, RconPacketType.ExecCommandOrAuthResponse, command), cancellationToken);
+            var response = await ReceivePacketAsync(cancellationToken);
+            return response.Body;
+        }
+        finally
+        {
+            _lock.Release();
+        }
     }
 
     private int NextId() => _nextPacketId++;
@@ -94,5 +116,6 @@ public sealed class RconClient : IAsyncDisposable
             await _stream.DisposeAsync();
         }
         _tcpClient.Dispose();
+        _lock.Dispose();
     }
 }

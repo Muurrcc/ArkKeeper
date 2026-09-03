@@ -91,6 +91,30 @@ public class ManagedServerResilienceTests
         Assert.Equal(ServerStatus.Stopped, server.Status);
     }
 
+    [Fact]
+    public async Task SendRconCommandAsync_CalledConcurrently_SharesOneConnectionAndAllCommandsSucceed()
+    {
+        // Regression coverage for two distinct bugs found while writing this test: (1) two
+        // overlapping calls both seeing "not connected" could each open their own RconClient and
+        // race to assign the shared field, leaking one; (2) once connection acquisition alone was
+        // locked, concurrent ExecuteCommandAsync calls on the *same* connection still interleaved
+        // their writes/reads and hung forever (RconClient has no per-command framing of its own).
+        // Wrapped in WaitAsync so a regression fails loudly instead of hanging the whole test run.
+        await using var rconServer = new FakeRconServer { ResponseDelay = TimeSpan.FromMilliseconds(50) };
+        var profile = new ServerProfile { RconPort = rconServer.Port, AdminPassword = "admin-pw" };
+        using var process = new ServerProcess(CmdExe, "/c ping -n 30 127.0.0.1 >nul");
+        await using var server = new ManagedServer(profile, process);
+        server.Start();
+
+        var results = await Task.WhenAll(Enumerable.Range(0, 10).Select(_ => server.SendRconCommandAsync("ListPlayers")))
+            .WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.All(results, r => Assert.Equal("OK", r));
+        Assert.Equal(10, rconServer.ReceivedCommands.Count);
+
+        server.Kill();
+    }
+
     private static async Task WaitUntilAsync(Func<bool> condition, int timeoutMs = 5000)
     {
         var sw = System.Diagnostics.Stopwatch.StartNew();
