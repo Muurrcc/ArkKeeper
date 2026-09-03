@@ -31,7 +31,7 @@ _(Se agregan cuando la Fase 2 del roadmap tenga la primera UI navegable — ver 
 
 ## Instalación
 
-_(Pendiente hasta la primera release — por ahora el proyecto solo se compila desde código fuente, ver abajo)_
+_(Pendiente hasta la primera release publicada — mientras tanto, compílalo tú mismo, ver abajo)_
 
 ## Build from Source
 
@@ -43,6 +43,30 @@ cd ArkKeeper
 dotnet build
 dotnet run --project src/ArkKeeper.App
 ```
+
+### Publicar un build optimizado
+
+```bash
+# Requiere .NET 10 instalado en la máquina destino (~36 MB)
+dotnet publish src/ArkKeeper.App -c Release -r win-x64 --self-contained false
+
+# No requiere .NET instalado (~113 MB, incluye el runtime)
+dotnet publish src/ArkKeeper.App -c Release -r win-x64 --self-contained true
+```
+
+## Optimización
+
+Comparado con un `dotnet publish` genérico (sin RID), fijar el target a `win-x64` evita empaquetar los binarios nativos de Skia/HarfBuzz de *todas* las plataformas soportadas y elimina símbolos de depuración nativos que no aportan nada en una build de release:
+
+| Build | Tamaño |
+|---|---|
+| Genérico (`dotnet publish`, sin RID) | 570 MB |
+| `win-x64`, framework-dependent | **36 MB** |
+| `win-x64`, self-contained (incluye runtime) | 113 MB |
+
+Arranque hasta ventana visible (framework-dependent, promedio de 3 mediciones): **~656 ms**.
+
+Se evaluó también `PublishTrimmed`/NativeAOT: tras corregir el `ViewLocator` (usaba reflexión para resolver Vista↔ViewModel, lo cual el trimmer rompía) el trimming de la UI funciona, pero quedó bloqueado por una incompatibilidad real entre generadores — el generador de `System.Text.Json` no ve las propiedades que `CommunityToolkit.Mvvm` genera a partir de `[ObservableProperty]`, así que perdía casi todos los datos al serializar un `ServerProfile`. `ProfileStore` se quedó con serialización por reflexión (documentado en el código) hasta resolver esto — queda como trabajo futuro, no bloquea el resto de la optimización.
 
 ## Stack tecnológico
 

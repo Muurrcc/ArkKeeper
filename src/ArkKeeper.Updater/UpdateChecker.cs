@@ -5,11 +5,6 @@ namespace ArkKeeper.Updater;
 /// <summary>Checks a JSON manifest URL for a newer ArkKeeper release than the one currently running.</summary>
 public sealed class UpdateChecker
 {
-    private static readonly JsonSerializerOptions SerializerOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-    };
-
     private readonly HttpClient _httpClient;
     private readonly string _manifestUrl;
 
@@ -22,7 +17,7 @@ public sealed class UpdateChecker
     public async Task<UpdateCheckResult> CheckAsync(Version currentVersion, CancellationToken cancellationToken = default)
     {
         var json = await _httpClient.GetStringAsync(_manifestUrl, cancellationToken);
-        var manifest = JsonSerializer.Deserialize<UpdateManifest>(json, SerializerOptions)
+        var manifest = JsonSerializer.Deserialize(json, UpdateManifestJsonContext.Default.UpdateManifest)
             ?? throw new InvalidOperationException("Update manifest was empty or malformed.");
 
         var latestVersion = Version.Parse(manifest.LatestVersion);

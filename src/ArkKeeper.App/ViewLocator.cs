@@ -1,37 +1,36 @@
-using System;
-using System.Diagnostics.CodeAnalysis;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using ArkKeeper.App.ViewModels;
+using ArkKeeper.App.Views;
 
 namespace ArkKeeper.App;
 
 /// <summary>
-/// Given a view model, returns the corresponding view if possible.
+/// Maps each ViewModel to its View explicitly. The original template's implementation used
+/// reflection (Type.GetType by string name), which silently breaks under trimming/NativeAOT —
+/// the trimmer removes View types nothing statically references. This has none, so it stays
+/// correct under a trimmed publish (see Phase 5 notes: `dotnet publish -p:PublishTrimmed=true`).
 /// </summary>
-[RequiresUnreferencedCode(
-    "Default implementation of ViewLocator involves reflection which may be trimmed away.",
-    Url = "https://docs.avaloniaui.net/docs/concepts/view-locator")]
-public class ViewLocator : IDataTemplate
+public sealed class ViewLocator : IDataTemplate
 {
+    private static readonly Dictionary<Type, Func<Control>> Factories = new()
+    {
+        [typeof(DashboardViewModel)] = () => new DashboardView(),
+        [typeof(ServersViewModel)] = () => new ServersView(),
+        [typeof(SettingsViewModel)] = () => new SettingsView(),
+    };
+
     public Control? Build(object? param)
     {
         if (param is null)
-            return null;
-        
-        var name = param.GetType().FullName!.Replace("ViewModel", "View", StringComparison.Ordinal);
-        var type = Type.GetType(name);
-
-        if (type != null)
         {
-            return (Control)Activator.CreateInstance(type)!;
+            return null;
         }
-        
-        return new TextBlock { Text = "Not Found: " + name };
+
+        return Factories.TryGetValue(param.GetType(), out var factory)
+            ? factory()
+            : new TextBlock { Text = "Not Found: " + param.GetType().Name };
     }
 
-    public bool Match(object? data)
-    {
-        return data is ViewModelBase;
-    }
+    public bool Match(object? data) => data is ViewModelBase;
 }

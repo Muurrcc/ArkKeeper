@@ -5,6 +5,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <DebugType Condition="'$(Configuration)' == 'Release'">none</DebugType>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
 
   <ItemGroup>
@@ -32,4 +35,14 @@
     <ProjectReference Include="..\ArkKeeper.Discord\ArkKeeper.Discord.csproj" />
     <ProjectReference Include="..\ArkKeeper.Updater\ArkKeeper.Updater.csproj" />
   </ItemGroup>
+
+  <!-- SkiaSharp/HarfBuzzSharp ship their native debug symbols (.pdb) as content, which
+       DebugType=none doesn't touch since it's not our own assembly's pdb. They add ~100MB
+       for no benefit in a shipped Release build, so strip them after publish. -->
+  <Target Name="RemoveNativeDebugSymbols" AfterTargets="Publish" Condition="'$(Configuration)' == 'Release'">
+    <ItemGroup>
+      <NativePdbToRemove Include="$(PublishDir)*.pdb" />
+    </ItemGroup>
+    <Delete Files="@(NativePdbToRemove)" />
+  </Target>
 </Project>

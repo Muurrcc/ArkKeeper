@@ -1,7 +1,6 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace ArkKeeper.Discord;
 
@@ -9,12 +8,6 @@ namespace ArkKeeper.Discord;
 /// A webhook URL is all that's needed — no bot token, no Discord.Net dependency.</summary>
 public sealed class DiscordWebhookNotifier
 {
-    private static readonly JsonSerializerOptions SerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-    };
-
     private readonly HttpClient _httpClient;
     private readonly string _webhookUrl;
 
@@ -33,15 +26,11 @@ public sealed class DiscordWebhookNotifier
             content,
             embed is null ? null : new[] { new WebhookEmbed(embed.Title, embed.Description, embed.ColorHex) });
 
-        var json = JsonSerializer.Serialize(payload, SerializerOptions);
+        var json = JsonSerializer.Serialize(payload, WebhookPayloadJsonContext.Default.WebhookPayload);
         using var body = new StringContent(json, Encoding.UTF8);
         body.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
         var response = await _httpClient.PostAsync(_webhookUrl, body, cancellationToken);
         response.EnsureSuccessStatusCode();
     }
-
-    private sealed record WebhookPayload(string? Content, WebhookEmbed[]? Embeds);
-
-    private sealed record WebhookEmbed(string Title, string Description, int Color);
 }

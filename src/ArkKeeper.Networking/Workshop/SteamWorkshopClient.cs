@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace ArkKeeper.Networking.Workshop;
 
@@ -38,7 +37,7 @@ public sealed class SteamWorkshopClient
         response.EnsureSuccessStatusCode();
 
         var json = await response.Content.ReadAsStringAsync(cancellationToken);
-        var envelope = JsonSerializer.Deserialize<ResponseEnvelope>(json)
+        var envelope = JsonSerializer.Deserialize(json, SteamWorkshopResponseJsonContext.Default.ResponseEnvelope)
             ?? throw new InvalidOperationException("Steam Workshop response was empty or malformed.");
 
         return envelope.Response.PublishedFileDetails.Select(ToModDetails).ToList();
@@ -52,19 +51,4 @@ public sealed class SteamWorkshopClient
         TimeUpdatedUtc: raw.TimeUpdated is { } seconds ? DateTimeOffset.FromUnixTimeSeconds(seconds) : null,
         PreviewUrl: raw.PreviewUrl,
         IsBanned: raw.Banned == 1);
-
-    private sealed record ResponseEnvelope(
-        [property: JsonPropertyName("response")] ResponseBody Response);
-
-    private sealed record ResponseBody(
-        [property: JsonPropertyName("publishedfiledetails")] List<RawFileDetails> PublishedFileDetails);
-
-    private sealed record RawFileDetails(
-        [property: JsonPropertyName("publishedfileid")] string PublishedFileId,
-        [property: JsonPropertyName("result")] int Result,
-        [property: JsonPropertyName("title")] string? Title,
-        [property: JsonPropertyName("file_size")] string? FileSize,
-        [property: JsonPropertyName("time_updated")] long? TimeUpdated,
-        [property: JsonPropertyName("preview_url")] string? PreviewUrl,
-        [property: JsonPropertyName("banned")] int Banned);
 }

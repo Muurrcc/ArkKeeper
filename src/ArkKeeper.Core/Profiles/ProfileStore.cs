@@ -9,6 +9,10 @@ namespace ArkKeeper.Core.Profiles;
 /// </summary>
 public sealed class ProfileStore
 {
+    // ServerProfile's settable properties come from CommunityToolkit.Mvvm's [ObservableProperty]
+    // source generator. A System.Text.Json source-generated JsonSerializerContext runs against
+    // the pre-expansion syntax and silently misses those generated properties (confirmed: it
+    // only serialized ProfileId/ModIds, dropping everything else) — so this stays reflection-based.
     private static readonly JsonSerializerOptions SerializerOptions = new() { WriteIndented = true };
 
     public ProfileStore(string directory)
