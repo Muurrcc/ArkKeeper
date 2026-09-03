@@ -19,6 +19,7 @@ public sealed class ViewLocator : IDataTemplate
         [typeof(ServersViewModel)] = () => new ServersView(),
         [typeof(SettingsViewModel)] = () => new SettingsView(),
         [typeof(ProfileEditorViewModel)] = () => new ProfileEditorView(),
+        [typeof(RconConsoleViewModel)] = () => new RconConsoleView(),
     };
 
     public Control? Build(object? param)

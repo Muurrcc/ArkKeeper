@@ -57,6 +57,9 @@
                                     <Button Content="Start" Command="{Binding StartCommand}" />
                                     <Button Content="Stop" Command="{Binding StopCommand}" />
                                     <Button Content="Kill" Command="{Binding KillCommand}" />
+                                    <Button Content="Console"
+                                            Command="{Binding #Root.((vm:ServersViewModel)DataContext).ConsoleCommand}"
+                                            CommandParameter="{Binding}" />
                                     <Button Content="Edit"
                                             Command="{Binding #Root.((vm:ServersViewModel)DataContext).EditCommand}"
                                             CommandParameter="{Binding}" />

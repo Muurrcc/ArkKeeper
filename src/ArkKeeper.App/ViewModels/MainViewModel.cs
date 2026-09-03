@@ -23,7 +23,7 @@ public partial class MainViewModel : ViewModelBase
     {
         _profileStore = profileStore;
 
-        ServersPage = new ServersViewModel(Profiles, fleet, _profileStore, OpenEditor);
+        ServersPage = new ServersViewModel(Profiles, fleet, _profileStore, OpenEditor, OpenConsole);
         DashboardPage = new DashboardViewModel(ServersPage.Servers);
         SettingsPage = new SettingsViewModel();
 
@@ -62,4 +62,9 @@ public partial class MainViewModel : ViewModelBase
     /// only MainViewModel knows about <see cref="SelectedPage"/>.</summary>
     private void OpenEditor(ServerProfile? existing) =>
         SelectedPage = new ProfileEditorViewModel(existing, Profiles, _profileStore, () => SelectedPage = ServersPage);
+
+    /// <summary>Opens the RCON console for one server. Same navigation pattern as
+    /// <see cref="OpenEditor"/>.</summary>
+    private void OpenConsole(ServerRowViewModel row) =>
+        SelectedPage = new RconConsoleViewModel(row, () => SelectedPage = ServersPage);
 }

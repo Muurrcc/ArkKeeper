@@ -35,6 +35,11 @@ public partial class ServerRowViewModel : ViewModelBase
 
     public void Refresh() => Status = _server.Status;
 
+    /// <summary>Exposes RCON without leaking <see cref="ManagedServer"/> itself to the UI layer
+    /// — used by <see cref="RconConsoleViewModel"/>.</summary>
+    public Task<string> SendRconCommandAsync(string command, CancellationToken cancellationToken = default) =>
+        _server.SendRconCommandAsync(command, cancellationToken);
+
     [RelayCommand(CanExecute = nameof(CanStart))]
     private void Start()
     {

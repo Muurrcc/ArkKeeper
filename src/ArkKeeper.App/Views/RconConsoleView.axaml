@@ -1,0 +1,46 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:ArkKeeper.App.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="ArkKeeper.App.Views.RconConsoleView"
+             x:DataType="vm:RconConsoleViewModel">
+
+    <DockPanel Margin="24">
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+            <StackPanel Grid.Column="0" Spacing="2">
+                <TextBlock FontSize="24" FontWeight="SemiBold" Text="RCON console" />
+                <TextBlock Text="{Binding Profile.ProfileName}" Opacity="0.7" />
+            </StackPanel>
+            <Button Grid.Column="1" Content="Close" Command="{Binding CloseCommand}" />
+        </Grid>
+
+        <StackPanel DockPanel.Dock="Bottom" Margin="0,12,0,0" Spacing="8">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="Save world" Command="{Binding SaveWorldCommand}" />
+                <Button Content="List players" Command="{Binding ListPlayersCommand}" />
+            </StackPanel>
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBox Grid.Column="0" Text="{Binding CommandText}"
+                          PlaceholderText="Type an RCON command and press Enter"
+                          KeyDown="OnCommandTextKeyDown"
+                          FontFamily="Consolas,Cascadia Mono,monospace" />
+                <Button Grid.Column="1" Content="Send" Command="{Binding SendCommand}" Margin="8,0,0,0" />
+            </Grid>
+        </StackPanel>
+
+        <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="12">
+            <ScrollViewer x:Name="LogScrollViewer">
+                <ItemsControl ItemsSource="{Binding Log}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" FontFamily="Consolas,Cascadia Mono,monospace"
+                                       FontSize="13" TextWrapping="Wrap" Margin="0,0,0,4" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
+    </DockPanel>
+</UserControl>
