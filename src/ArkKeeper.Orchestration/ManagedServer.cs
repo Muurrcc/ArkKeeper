@@ -21,6 +21,7 @@ public sealed class ManagedServer : IAsyncDisposable
     private readonly ILogger _logger;
     private RconClient? _rcon;
     private bool _stopRequested;
+    private CancellationTokenSource? _pendingRestartCts;
 
     public ManagedServer(ServerProfile profile, DiscordWebhookNotifier? notifier = null, ILogger<ManagedServer>? logger = null)
         : this(profile, ServerProcess.ForProfile(profile), notifier, logger)
@@ -59,6 +60,7 @@ public sealed class ManagedServer : IAsyncDisposable
     public void Start()
     {
         _stopRequested = false;
+        CancelPendingRestart();
         _logger.LogInformation("Starting server {SessionName}", Profile.SessionName);
         _process.Start();
         _logger.LogInformation("Server {SessionName} started, PID {ProcessId}", Profile.SessionName, _process.ProcessId);
@@ -70,6 +72,7 @@ public sealed class ManagedServer : IAsyncDisposable
     public async Task StopAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
     {
         _stopRequested = true;
+        CancelPendingRestart();
         _logger.LogInformation("Stopping server {SessionName} (graceful, timeout {Timeout})", Profile.SessionName, timeout);
         var rcon = await GetOrConnectRconAsync(cancellationToken);
         await GracefulShutdown.StopAsync(_process, rcon, timeout, cancellationToken);
@@ -80,6 +83,7 @@ public sealed class ManagedServer : IAsyncDisposable
     public void Kill()
     {
         _stopRequested = true;
+        CancelPendingRestart();
         _logger.LogWarning("Killing server {SessionName} without a graceful RCON shutdown", Profile.SessionName);
         _process.Kill();
     }
@@ -136,26 +140,41 @@ public sealed class ManagedServer : IAsyncDisposable
             _logger.LogWarning(
                 "Server {SessionName} exited unexpectedly, auto-restarting in {Delay}",
                 Profile.SessionName, AutoRestartDelay);
-            _ = AutoRestartAfterDelayAsync();
+
+            var cts = new CancellationTokenSource();
+            _pendingRestartCts = cts;
+            _ = AutoRestartAfterDelayAsync(cts.Token);
         }
     }
 
-    private async Task AutoRestartAfterDelayAsync()
+    private async Task AutoRestartAfterDelayAsync(CancellationToken cancellationToken)
     {
         try
         {
-            await Task.Delay(AutoRestartDelay);
-
-            if (_stopRequested)
-            {
-                return;
-            }
-
+            await Task.Delay(AutoRestartDelay, cancellationToken);
             Start();
+        }
+        catch (OperationCanceledException)
+        {
+            // An explicit Start()/StopAsync()/Kill()/DisposeAsync() cancelled this pending
+            // restart — nothing to do.
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Auto-restart failed for {SessionName}", Profile.SessionName);
+        }
+    }
+
+    /// <summary>Cancels a pending auto-restart, if one is scheduled — called from anything that
+    /// represents an intentional state change (Start/Stop/Kill/Dispose), so a delayed restart
+    /// can never fire after one of those already ran.</summary>
+    private void CancelPendingRestart()
+    {
+        if (_pendingRestartCts is { } cts)
+        {
+            _pendingRestartCts = null;
+            cts.Cancel();
+            cts.Dispose();
         }
     }
 
@@ -172,6 +191,7 @@ public sealed class ManagedServer : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         _stopRequested = true;
+        CancelPendingRestart();
         _process.Exited -= OnProcessExited;
         if (_rcon is not null)
         {

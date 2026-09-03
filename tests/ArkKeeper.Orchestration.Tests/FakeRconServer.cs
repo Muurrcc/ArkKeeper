@@ -29,6 +29,11 @@ internal sealed class FakeRconServer : IAsyncDisposable
     /// simulating a mid-session drop, so tests can verify a client's reconnect/retry logic.</summary>
     public int? CloseConnectionAfterCommands { get; set; }
 
+    /// <summary>Artificial delay before responding to each command — widens the window for tests
+    /// that need to land a concurrent mutation (e.g. SchedulerRunner.Add) while a command is
+    /// still in flight.</summary>
+    public TimeSpan ResponseDelay { get; set; } = TimeSpan.Zero;
+
     public IReadOnlyList<string> ReceivedCommands
     {
         get { lock (_receivedCommands) { return _receivedCommands.ToArray(); } }
@@ -78,6 +83,11 @@ internal sealed class FakeRconServer : IAsyncDisposable
             lock (_receivedCommands)
             {
                 _receivedCommands.Add(command.Body);
+            }
+
+            if (ResponseDelay > TimeSpan.Zero)
+            {
+                await Task.Delay(ResponseDelay, cancellationToken);
             }
 
             await WritePacketAsync(stream, new RconPacket(command.Id, RconPacketType.ResponseValue, "OK"), cancellationToken);

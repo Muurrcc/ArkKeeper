@@ -71,4 +71,33 @@ public class SchedulerRunnerTests
 
         Assert.Empty(runner.Schedules);
     }
+
+    [Fact]
+    public async Task RunDueTasksAsync_WithConcurrentAddDuringIteration_DoesNotThrow()
+    {
+        // Regression test: _schedules used to be a plain, unsynchronized List<T>. Adding to it
+        // while RunDueTasksAsync was mid-foreach (e.g. a UI thread editing tasks while the
+        // background scheduler loop is running) threw "Collection was modified".
+        await using var rconServer = new FakeRconServer { ResponseDelay = TimeSpan.FromMilliseconds(200) };
+        await using var rcon = new RconClient();
+        await rcon.ConnectAsync("127.0.0.1", rconServer.Port, "password");
+
+        var runner = new SchedulerRunner();
+        var now = DateTimeOffset.UtcNow;
+        // Several due tasks, so the foreach is still in progress (awaiting a delayed RCON
+        // response) when the concurrent Add below fires.
+        for (var i = 0; i < 5; i++)
+        {
+            runner.Add(new ScheduledTask($"Task{i}", "SaveWorld", ScheduleKind.Interval, TimeSpan.FromHours(1)), now.AddHours(-2));
+        }
+
+        var runTask = runner.RunDueTasksAsync(rcon, now);
+        await Task.Delay(50);
+        runner.Add(new ScheduledTask("AddedDuringIteration", "SaveWorld", ScheduleKind.Interval, TimeSpan.FromHours(1)), now.AddHours(-2));
+
+        var ran = await runTask;
+
+        Assert.Equal(5, ran.Count);
+        Assert.Equal(6, runner.Schedules.Count);
+    }
 }

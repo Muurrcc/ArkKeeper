@@ -68,6 +68,29 @@ public class ManagedServerResilienceTests
         Assert.Equal(ServerStatus.Stopped, server.Status);
     }
 
+    [Fact]
+    public async Task Kill_DuringPendingAutoRestartDelay_CancelsTheRestart()
+    {
+        // Distinct from AutoRestart_AfterAnExplicitKill_DoesNotRestart above: here the crash
+        // happens first (unrequested, so a restart gets scheduled), and Kill() lands while that
+        // restart is still waiting out its delay — proving the pending restart is cancelled
+        // rather than relying on timing to avoid the race.
+        var profile = new ServerProfile();
+        using var process = new ServerProcess(CmdExe, "/c exit 1");
+        await using var server = new ManagedServer(profile, process)
+        {
+            AutoRestart = true,
+            AutoRestartDelay = TimeSpan.FromMilliseconds(300),
+        };
+
+        server.Start();
+        await Task.Delay(100); // process has crashed and a restart is now pending
+        server.Kill();
+        await Task.Delay(500); // longer than the original 300ms delay would have needed
+
+        Assert.Equal(ServerStatus.Stopped, server.Status);
+    }
+
     private static async Task WaitUntilAsync(Func<bool> condition, int timeoutMs = 5000)
     {
         var sw = System.Diagnostics.Stopwatch.StartNew();

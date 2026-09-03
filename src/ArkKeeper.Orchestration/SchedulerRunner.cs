@@ -8,10 +8,16 @@ namespace ArkKeeper.Orchestration;
 /// <summary>
 /// Actually executes <see cref="ScheduledTask"/>s — <see cref="TaskSchedule"/> only knew how to
 /// answer "is it due yet?"; nothing polled that and ran the command until this.
+///
+/// Thread-safe: <see cref="RunLoopAsync"/> is meant to run continuously in the background while
+/// a caller (e.g. a UI) calls <see cref="Add"/>/<see cref="Remove"/> concurrently as the user
+/// edits their scheduled tasks — an earlier version used a plain, unsynchronized List here,
+/// which would throw "Collection was modified" if a mutation landed mid-iteration.
 /// </summary>
 public sealed class SchedulerRunner
 {
     private readonly List<TaskSchedule> _schedules = new();
+    private readonly object _lock = new();
     private readonly ILogger _logger;
 
     public SchedulerRunner(ILogger<SchedulerRunner>? logger = null)
@@ -19,15 +25,24 @@ public sealed class SchedulerRunner
         _logger = logger ?? NullLogger<SchedulerRunner>.Instance;
     }
 
-    public IReadOnlyList<TaskSchedule> Schedules => _schedules;
+    public IReadOnlyList<TaskSchedule> Schedules
+    {
+        get { lock (_lock) { return _schedules.ToArray(); } }
+    }
 
     /// <summary>The underlying tasks, e.g. to persist via <see cref="SchedulerStore"/>.</summary>
-    public IReadOnlyList<ScheduledTask> Tasks => _schedules.Select(s => s.Task).ToList();
+    public IReadOnlyList<ScheduledTask> Tasks
+    {
+        get { lock (_lock) { return _schedules.Select(s => s.Task).ToList(); } }
+    }
 
     public TaskSchedule Add(ScheduledTask task, DateTimeOffset? now = null)
     {
         var schedule = new TaskSchedule(task, now ?? DateTimeOffset.UtcNow);
-        _schedules.Add(schedule);
+        lock (_lock)
+        {
+            _schedules.Add(schedule);
+        }
         return schedule;
     }
 
@@ -40,16 +55,28 @@ public sealed class SchedulerRunner
         }
     }
 
-    public void Remove(TaskSchedule schedule) => _schedules.Remove(schedule);
+    public void Remove(TaskSchedule schedule)
+    {
+        lock (_lock)
+        {
+            _schedules.Remove(schedule);
+        }
+    }
 
     /// <summary>Runs every due task's command over RCON and advances its schedule. Returns the
     /// tasks that ran, in case a caller wants to notify.</summary>
     public async Task<IReadOnlyList<ScheduledTask>> RunDueTasksAsync(
         RconClient rcon, DateTimeOffset now, CancellationToken cancellationToken = default)
     {
+        TaskSchedule[] snapshot;
+        lock (_lock)
+        {
+            snapshot = _schedules.ToArray();
+        }
+
         var ran = new List<ScheduledTask>();
 
-        foreach (var schedule in _schedules)
+        foreach (var schedule in snapshot)
         {
             if (!schedule.IsDue(now))
             {
