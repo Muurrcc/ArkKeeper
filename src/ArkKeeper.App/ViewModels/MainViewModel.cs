@@ -23,7 +23,7 @@ public partial class MainViewModel : ViewModelBase
     {
         _profileStore = profileStore;
 
-        ServersPage = new ServersViewModel(Profiles, fleet, _profileStore, OpenEditor, OpenConsole, OpenPlayers);
+        ServersPage = new ServersViewModel(Profiles, fleet, _profileStore, OpenEditor, OpenConsole, OpenPlayers, OpenBackups);
         DashboardPage = new DashboardViewModel(ServersPage.Servers);
         SettingsPage = new SettingsViewModel();
 
@@ -72,4 +72,9 @@ public partial class MainViewModel : ViewModelBase
     /// <see cref="OpenEditor"/>.</summary>
     private void OpenPlayers(ServerRowViewModel row) =>
         SelectedPage = new PlayersViewModel(row, () => SelectedPage = ServersPage);
+
+    /// <summary>Opens the world save/restore page for one server. Same navigation pattern as
+    /// <see cref="OpenEditor"/>.</summary>
+    private void OpenBackups(ServerRowViewModel row) =>
+        SelectedPage = new BackupsViewModel(row, () => SelectedPage = ServersPage);
 }

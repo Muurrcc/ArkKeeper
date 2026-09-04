@@ -1,0 +1,72 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:ArkKeeper.App.ViewModels"
+             xmlns:conv="using:ArkKeeper.App.Converters"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="ArkKeeper.App.Views.BackupsView"
+             x:DataType="vm:BackupsViewModel"
+             x:Name="Root">
+
+    <DockPanel Margin="24">
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+            <StackPanel Grid.Column="0" Spacing="2">
+                <TextBlock FontSize="24" FontWeight="SemiBold" Text="World save &amp; restore" />
+                <TextBlock Text="{Binding Profile.ProfileName}" Opacity="0.7" />
+            </StackPanel>
+            <Button Grid.Column="1" Content="Close" Command="{Binding CloseCommand}" />
+        </Grid>
+
+        <TextBlock DockPanel.Dock="Top"
+                   Text="{Binding ErrorMessage}"
+                   IsVisible="{Binding ErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}"
+                   Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                   Margin="0,0,0,8" TextWrapping="Wrap" />
+
+        <TextBlock DockPanel.Dock="Top"
+                   Text="{Binding StatusMessage}"
+                   IsVisible="{Binding StatusMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}"
+                   Foreground="{DynamicResource SystemFillColorSuccessBrush}"
+                   Margin="0,0,0,12" TextWrapping="Wrap" />
+
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,Auto,*,Auto" Margin="0,0,0,16">
+            <Button Grid.Column="0" Content="Back up now" Command="{Binding CreateBackupCommand}" />
+            <CheckBox Grid.Column="1" Content="Compress (.zip)" Margin="12,0,0,0"
+                      IsChecked="{Binding CompressNewBackups}" VerticalAlignment="Center" />
+            <Button Grid.Column="3" Content="Reload" Command="{Binding ReloadCommand}" />
+        </Grid>
+
+        <ScrollViewer>
+            <StackPanel Spacing="8">
+                <TextBlock Text="No backups yet — click &quot;Back up now&quot; to create the first one."
+                           Opacity="0.6" IsVisible="{Binding HasNoBackups}" />
+
+                <ItemsControl ItemsSource="{Binding Backups}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:BackupRowViewModel">
+                            <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                                    CornerRadius="6" Padding="12" Margin="0,0,0,8">
+                                <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+                                    <StackPanel Grid.Column="0" Spacing="2">
+                                        <TextBlock Text="{Binding Timestamp}" FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding SizeDisplay}" Opacity="0.7" FontSize="12" />
+                                    </StackPanel>
+                                    <Border Grid.Column="1" CornerRadius="4" Padding="6,2" Margin="0,0,12,0"
+                                            VerticalAlignment="Center"
+                                            IsVisible="{Binding IsCompressed}"
+                                            Background="{DynamicResource SystemFillColorAttentionBrush}">
+                                        <TextBlock Text="zip" FontSize="11" />
+                                    </Border>
+                                    <Button Grid.Column="3" Content="Restore"
+                                            Command="{Binding #Root.((vm:BackupsViewModel)DataContext).RestoreCommand}"
+                                            CommandParameter="{Binding}" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>

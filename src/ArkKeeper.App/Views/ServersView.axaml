@@ -25,15 +25,15 @@
                 <DataTemplate x:DataType="vm:ServerRowViewModel">
                     <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                             CornerRadius="8" Padding="16" Margin="0,0,0,12">
-                        <StackPanel Spacing="8">
-                            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto">
+                        <StackPanel Spacing="12">
+                            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto">
                                 <Ellipse Grid.Column="0" Width="10" Height="10" VerticalAlignment="Center" Margin="0,0,12,0">
                                     <Ellipse.Fill>
                                         <SolidColorBrush Color="{Binding IsRunning, Converter={x:Static conv:RunningColorConverter.Instance}}" />
                                     </Ellipse.Fill>
                                 </Ellipse>
 
-                                <StackPanel Grid.Column="1" Spacing="2">
+                                <StackPanel Grid.Column="1" Spacing="2" MinWidth="120">
                                     <TextBlock Text="{Binding Profile.ProfileName}" FontWeight="SemiBold" FontSize="15" />
                                     <TextBlock Text="{Binding Profile.SessionName}" Opacity="0.7" FontSize="12" />
                                 </StackPanel>
@@ -48,29 +48,37 @@
                                     <TextBlock Text="{Binding Profile.MaxPlayers}" HorizontalAlignment="Right" />
                                 </StackPanel>
 
-                                <Border Grid.Column="4" CornerRadius="4" Padding="8,4" VerticalAlignment="Center" Margin="0,0,12,0"
+                                <Border Grid.Column="4" CornerRadius="4" Padding="8,4" VerticalAlignment="Center"
                                         Background="{DynamicResource SystemFillColorSuccessBrush}">
                                     <TextBlock Text="{Binding Profile.PveMode, Converter={x:Static conv:PveBadgeConverter.Instance}}" FontSize="12" />
                                 </Border>
-
-                                <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="8">
-                                    <Button Content="Start" Command="{Binding StartCommand}" />
-                                    <Button Content="Stop" Command="{Binding StopCommand}" />
-                                    <Button Content="Kill" Command="{Binding KillCommand}" />
-                                    <Button Content="Console"
-                                            Command="{Binding #Root.((vm:ServersViewModel)DataContext).ConsoleCommand}"
-                                            CommandParameter="{Binding}" />
-                                    <Button Content="Players"
-                                            Command="{Binding #Root.((vm:ServersViewModel)DataContext).PlayersCommand}"
-                                            CommandParameter="{Binding}" />
-                                    <Button Content="Edit"
-                                            Command="{Binding #Root.((vm:ServersViewModel)DataContext).EditCommand}"
-                                            CommandParameter="{Binding}" />
-                                    <Button Content="Delete"
-                                            Command="{Binding #Root.((vm:ServersViewModel)DataContext).DeleteCommand}"
-                                            CommandParameter="{Binding}" />
-                                </StackPanel>
                             </Grid>
+
+                            <WrapPanel Orientation="Horizontal">
+                                <WrapPanel.Styles>
+                                    <Style Selector="Button">
+                                        <Setter Property="Margin" Value="0,0,8,8" />
+                                    </Style>
+                                </WrapPanel.Styles>
+                                <Button Content="Start" Command="{Binding StartCommand}" />
+                                <Button Content="Stop" Command="{Binding StopCommand}" />
+                                <Button Content="Kill" Command="{Binding KillCommand}" />
+                                <Button Content="Console"
+                                        Command="{Binding #Root.((vm:ServersViewModel)DataContext).ConsoleCommand}"
+                                        CommandParameter="{Binding}" />
+                                <Button Content="Players"
+                                        Command="{Binding #Root.((vm:ServersViewModel)DataContext).PlayersCommand}"
+                                        CommandParameter="{Binding}" />
+                                <Button Content="Backups"
+                                        Command="{Binding #Root.((vm:ServersViewModel)DataContext).BackupsCommand}"
+                                        CommandParameter="{Binding}" />
+                                <Button Content="Edit"
+                                        Command="{Binding #Root.((vm:ServersViewModel)DataContext).EditCommand}"
+                                        CommandParameter="{Binding}" />
+                                <Button Content="Delete"
+                                        Command="{Binding #Root.((vm:ServersViewModel)DataContext).DeleteCommand}"
+                                        CommandParameter="{Binding}" />
+                            </WrapPanel>
 
                             <TextBlock Text="{Binding ErrorMessage}"
                                        IsVisible="{Binding ErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}"
