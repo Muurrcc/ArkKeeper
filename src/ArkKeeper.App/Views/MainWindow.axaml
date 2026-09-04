@@ -7,7 +7,7 @@
         mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="620"
         x:Class="ArkKeeper.App.Views.MainWindow"
         x:DataType="vm:MainViewModel"
-        Icon="/Assets/avalonia-logo.ico"
+        Icon="/Assets/arkkeeper.ico"
         Title="ArkKeeper"
         Width="1000" Height="620"
         Background="Transparent"

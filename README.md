@@ -1,3 +1,5 @@
+<img src="docs/icon.png" alt="ArkKeeper icon" width="96" height="96" align="left" />
+
 # ArkKeeper
 
 [![Build & Test](https://github.com/Muurrcc/ArkKeeper/actions/workflows/build.yml/badge.svg)](https://github.com/Muurrcc/ArkKeeper/actions/workflows/build.yml)
