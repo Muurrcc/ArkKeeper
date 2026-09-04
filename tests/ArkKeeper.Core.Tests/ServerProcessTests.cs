@@ -118,6 +118,32 @@ public class ServerProcessTests
     }
 
     [Fact]
+    public async Task SampleResourceUsage_AfterARestart_ReportsZeroCpuAgainRatherThanAStaleDelta()
+    {
+        // Start() now resets the CPU-sample baseline — without that, the first sample after a
+        // restart would diff the new process's TotalProcessorTime against the *previous*
+        // process's timestamp/CPU-time from before it was killed, producing a bogus (likely huge
+        // or negative, since it's comparing two unrelated processes' clocks) CPU% instead of an
+        // honest 0.
+        using var process = new ServerProcess(CmdExe, "/c ping -n 5 127.0.0.1 >nul");
+        process.Start();
+        process.SampleResourceUsage();
+        await Task.Delay(200);
+        process.SampleResourceUsage(); // non-zero-ish baseline established for the first process
+
+        process.Kill();
+        await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(10));
+
+        process.Start();
+        var sampleRightAfterRestart = process.SampleResourceUsage();
+
+        Assert.NotNull(sampleRightAfterRestart);
+        Assert.Equal(0, sampleRightAfterRestart!.Value.CpuPercent);
+
+        process.Kill();
+    }
+
+    [Fact]
     public async Task Kill_TerminatesRunningProcess()
     {
         using var process = new ServerProcess(CmdExe, "/c ping -n 30 127.0.0.1 >nul");

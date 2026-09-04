@@ -16,6 +16,13 @@ namespace ArkKeeper.Core.Servers;
 /// </summary>
 public sealed class ServerProcess : IDisposable
 {
+    // Guards every read/write of _process (and the two CPU-sample fields below it) — Process.Exited
+    // fires on a ThreadPool thread, not necessarily the UI thread, and ManagedServer's auto-restart
+    // calls Start() (reassigning _process) directly from that Exited handler's continuation. Without
+    // this, that could run concurrently with a UI-thread poll timer's Status/SampleResourceUsage
+    // call on the very same instance — an unsynchronized field race, not just a theoretical one
+    // given this app already polls every server every 2 seconds.
+    private readonly object _lock = new();
     private Process? _process;
     private DateTime? _lastCpuSampleAt;
     private TimeSpan? _lastCpuSampleTotal;
@@ -48,9 +55,15 @@ public sealed class ServerProcess : IDisposable
 
     public int CpuCoreLimit { get; private set; }
 
-    public ServerStatus Status => _process is { HasExited: false } ? ServerStatus.Running : ServerStatus.Stopped;
+    public ServerStatus Status
+    {
+        get { lock (_lock) { return _process is { HasExited: false } ? ServerStatus.Running : ServerStatus.Stopped; } }
+    }
 
-    public int? ProcessId => Status == ServerStatus.Running ? _process!.Id : null;
+    public int? ProcessId
+    {
+        get { lock (_lock) { return _process is { HasExited: false } p ? p.Id : null; } }
+    }
 
     /// <summary>Raised when the process exits, however that happened (crash, DoExit via RCON, Kill()).</summary>
     public event EventHandler? Exited;
@@ -82,38 +95,43 @@ public sealed class ServerProcess : IDisposable
     {
         RefreshFromProfile();
 
-        if (Status == ServerStatus.Running)
+        lock (_lock)
         {
-            throw new InvalidOperationException("The server process is already running.");
+            if (_process is { HasExited: false })
+            {
+                throw new InvalidOperationException("The server process is already running.");
+            }
+
+            if (!File.Exists(ExecutablePath))
+            {
+                throw new FileNotFoundException("Server executable not found — install/update it first.", ExecutablePath);
+            }
+
+            // Release the previous instance's handle before replacing it — Start() can be called
+            // again after a prior run exited (e.g. ManagedServer's auto-restart), and leaving the
+            // old Process object around unreleased/undisposed is a real resource leak, not just tidiness.
+            if (_process is not null)
+            {
+                _process.Exited -= OnProcessExited;
+                _process.Dispose();
+            }
+
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = ExecutablePath,
+                Arguments = Arguments,
+                UseShellExecute = false,
+                WorkingDirectory = Path.GetDirectoryName(Path.GetFullPath(ExecutablePath)),
+            };
+
+            var newProcess = new Process { StartInfo = startInfo, EnableRaisingEvents = true };
+            newProcess.Exited += OnProcessExited;
+            newProcess.Start();
+            _process = newProcess;
+            _lastCpuSampleAt = null;
+            _lastCpuSampleTotal = null;
+            ApplyPerformanceSettings(newProcess);
         }
-
-        if (!File.Exists(ExecutablePath))
-        {
-            throw new FileNotFoundException("Server executable not found — install/update it first.", ExecutablePath);
-        }
-
-        // Release the previous instance's handle before replacing it — Start() can be called
-        // again after a prior run exited (e.g. ManagedServer's auto-restart), and leaving the
-        // old Process object around unreleased/undisposed is a real resource leak, not just tidiness.
-        if (_process is not null)
-        {
-            _process.Exited -= OnProcessExited;
-            _process.Dispose();
-        }
-
-        var startInfo = new ProcessStartInfo
-        {
-            FileName = ExecutablePath,
-            Arguments = Arguments,
-            UseShellExecute = false,
-            WorkingDirectory = Path.GetDirectoryName(Path.GetFullPath(ExecutablePath)),
-        };
-
-        var newProcess = new Process { StartInfo = startInfo, EnableRaisingEvents = true };
-        newProcess.Exited += OnProcessExited;
-        newProcess.Start();
-        _process = newProcess;
-        ApplyPerformanceSettings(newProcess);
     }
 
     /// <summary>Best-effort: a priority/affinity change failing (e.g. the process already exited,
@@ -153,32 +171,49 @@ public sealed class ServerProcess : IDisposable
     /// accurate from the first call since it doesn't need a delta.</summary>
     public ResourceUsageSample? SampleResourceUsage()
     {
-        if (_process is not { HasExited: false } process)
+        lock (_lock)
         {
-            _lastCpuSampleAt = null;
-            _lastCpuSampleTotal = null;
-            return null;
-        }
-
-        process.Refresh();
-        var now = DateTime.UtcNow;
-        var totalCpuTime = process.TotalProcessorTime;
-
-        var cpuPercent = 0.0;
-        if (_lastCpuSampleAt is { } lastAt && _lastCpuSampleTotal is { } lastTotal)
-        {
-            var elapsedWallMs = (now - lastAt).TotalMilliseconds;
-            var elapsedCpuMs = (totalCpuTime - lastTotal).TotalMilliseconds;
-            if (elapsedWallMs > 0)
+            if (_process is not { HasExited: false } process)
             {
-                cpuPercent = Math.Clamp(elapsedCpuMs / (elapsedWallMs * Environment.ProcessorCount) * 100.0, 0, 100);
+                _lastCpuSampleAt = null;
+                _lastCpuSampleTotal = null;
+                return null;
+            }
+
+            try
+            {
+                process.Refresh();
+                var now = DateTime.UtcNow;
+                var totalCpuTime = process.TotalProcessorTime;
+
+                var cpuPercent = 0.0;
+                if (_lastCpuSampleAt is { } lastAt && _lastCpuSampleTotal is { } lastTotal)
+                {
+                    var elapsedWallMs = (now - lastAt).TotalMilliseconds;
+                    var elapsedCpuMs = (totalCpuTime - lastTotal).TotalMilliseconds;
+                    if (elapsedWallMs > 0)
+                    {
+                        cpuPercent = Math.Clamp(elapsedCpuMs / (elapsedWallMs * Environment.ProcessorCount) * 100.0, 0, 100);
+                    }
+                }
+
+                _lastCpuSampleAt = now;
+                _lastCpuSampleTotal = totalCpuTime;
+
+                return new ResourceUsageSample(cpuPercent, process.WorkingSet64);
+            }
+            catch (InvalidOperationException)
+            {
+                // The process exited in the window between the HasExited check above and one of
+                // the property reads below — Process.Refresh()/TotalProcessorTime/WorkingSet64
+                // all throw this once the OS process handle is gone, even though HasExited said
+                // it was still running a moment earlier. A poll-timer caller (every server, every
+                // 2s) shouldn't have that genuinely-just-happened race crash the whole tick.
+                _lastCpuSampleAt = null;
+                _lastCpuSampleTotal = null;
+                return null;
             }
         }
-
-        _lastCpuSampleAt = now;
-        _lastCpuSampleTotal = totalCpuTime;
-
-        return new ResourceUsageSample(cpuPercent, process.WorkingSet64);
     }
 
     /// <summary>Terminates the process immediately. Prefer
@@ -186,23 +221,40 @@ public sealed class ServerProcess : IDisposable
     /// outright can lose whatever the world hasn't auto-saved yet.</summary>
     public void Kill()
     {
-        if (_process is { HasExited: false })
+        lock (_lock)
         {
-            _process.Kill(entireProcessTree: true);
+            if (_process is { HasExited: false })
+            {
+                _process.Kill(entireProcessTree: true);
+            }
         }
     }
 
-    public Task WaitForExitAsync(CancellationToken cancellationToken = default) =>
-        _process?.WaitForExitAsync(cancellationToken) ?? Task.CompletedTask;
+    /// <summary>Not locked while actually awaiting — this can run for as long as the server is up,
+    /// and holding <see cref="_lock"/> across that would block every other member (Status, Kill,
+    /// a concurrent Start) for the entire wait. Only the reference read at the start needs the lock.</summary>
+    public Task WaitForExitAsync(CancellationToken cancellationToken = default)
+    {
+        Process? process;
+        lock (_lock)
+        {
+            process = _process;
+        }
+
+        return process?.WaitForExitAsync(cancellationToken) ?? Task.CompletedTask;
+    }
 
     private void OnProcessExited(object? sender, EventArgs e) => Exited?.Invoke(this, EventArgs.Empty);
 
     public void Dispose()
     {
-        if (_process is not null)
+        lock (_lock)
         {
-            _process.Exited -= OnProcessExited;
-            _process.Dispose();
+            if (_process is not null)
+            {
+                _process.Exited -= OnProcessExited;
+                _process.Dispose();
+            }
         }
     }
 }

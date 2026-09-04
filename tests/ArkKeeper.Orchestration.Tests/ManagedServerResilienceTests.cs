@@ -125,6 +125,44 @@ public class ManagedServerResilienceTests
     }
 
     [Fact]
+    public async Task PollingStatusAndResourceUsage_WhileAutoRestartCyclesInTheBackground_NeverThrows()
+    {
+        // Process.Exited fires on a ThreadPool thread, and auto-restart's Start() call runs from
+        // that same background continuation — reassigning/disposing the underlying Process while
+        // MainViewModel's UI-thread poll timer could be concurrently calling Status/
+        // SampleResourceUsage() on the very same ManagedServer. Before ServerProcess gained its
+        // own lock, this could throw ObjectDisposedException (SampleResourceUsage capturing the
+        // Process reference just as Start()'s "dispose the previous instance" step ran on it) or
+        // simply lose/corrupt a CPU-sample field. A tight polling loop running concurrently with
+        // several real crash/restart cycles is what actually exercises that window — a single
+        // sample or a single restart, one at a time, never lands in the racy moment.
+        var profile = new ServerProfile();
+        using var process = new ServerProcess(CmdExe, "/c exit 1");
+        await using var server = new ManagedServer(profile, process)
+        {
+            AutoRestart = true,
+            AutoRestartDelay = TimeSpan.FromMilliseconds(20),
+        };
+
+        server.Start();
+
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+        var pollTask = Task.Run(async () =>
+        {
+            while (!cts.IsCancellationRequested)
+            {
+                _ = server.Status;
+                _ = server.SampleResourceUsage();
+                await Task.Delay(5, cts.Token).ContinueWith(_ => { });
+            }
+        });
+
+        await pollTask.WaitAsync(TimeSpan.FromSeconds(5));
+
+        server.Kill();
+    }
+
+    [Fact]
     public async Task AutoRestart_DefaultsToFalse()
     {
         var profile = new ServerProfile();
