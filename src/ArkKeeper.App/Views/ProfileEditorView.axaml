@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -176,6 +176,860 @@
                     </StackPanel>
                 </Expander>
 
+                <CheckBox Content="Advanced config" IsChecked="{Binding ShowAdvancedConfig}" />
+
+                <StackPanel Spacing="12" IsVisible="{Binding ShowAdvancedConfig}">
+
+                <Expander Header="Chat and Social" IsExpanded="False">
+                    <StackPanel Margin="0,12,0,0">
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Admin Logging" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.AdminLogging}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Allow Tribe Alliances" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.AllowTribeAlliances}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Ban List URL" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.BanListURL}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Enable Global Voice Chat" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.EnableGlobalVoiceChat}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Enable Player Joined Notifications" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.EnablePlayerJoinedNotifications}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Enable Player Leave Notifications" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.EnablePlayerLeaveNotifications}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Enable Proximity Chat" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.EnableProximityChat}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Max Alliances Per Tribe" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.MaxAlliancesPerTribe}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Max Number Of Players In Tribe" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.MaxNumberOfPlayersInTribe}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Max Tribe Logs" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.MaxTribeLogs}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Max Tribes Per Alliance" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.MaxTribesPerAlliance}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="MOTD" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.MOTD}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="MOTDDuration" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.MOTDDuration}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="RCONServer Game Log Buffer" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.RCONServerGameLogBuffer}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="SOTF_Battle Num Of Tribes To Start Game" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.SOTF_BattleNumOfTribesToStartGame}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="SOTF_Max Number Of Players In Tribe" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.SOTF_MaxNumberOfPlayersInTribe}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Tribe Name Change Cooldown" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.TribeNameChangeCooldown}" />
+                        </Grid>
+                    </StackPanel>
+                </Expander>
+
+                <Expander Header="Dinos and Taming" IsExpanded="False">
+                    <StackPanel Margin="0,12,0,0">
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Allow Anyone Baby Imprint Cuddle" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.AllowAnyoneBabyImprintCuddle}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Allow Raid Dino Feeding" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.AllowRaidDinoFeeding}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Auto Destroy Decayed Dinos" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.AutoDestroyDecayedDinos}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Baby Cuddle Grace Period Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.BabyCuddleGracePeriodMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Baby Cuddle Interval Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.BabyCuddleIntervalMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Baby Cuddle Lose Imprint Quality Speed Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.BabyCuddleLoseImprintQualitySpeedMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Baby Food Consumption Speed Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.BabyFoodConsumptionSpeedMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Baby Imprinting Stat Scale Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.BabyImprintingStatScaleMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Baby Mature Speed Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.BabyMatureSpeedMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Cross ARKAllow Foreign Dino Downloads" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.CrossARKAllowForeignDinoDownloads}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Dino Character Food Drain Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.DinoCharacterFoodDrainMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Dino Character Health Recovery Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.DinoCharacterHealthRecoveryMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Dino Character Stamina Drain Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.DinoCharacterStaminaDrainMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Dino Count Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.DinoCountMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Dino Damage Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.DinoDamageMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Dino Harvesting Damage Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.DinoHarvestingDamageMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Dino Resistance Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.DinoResistanceMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Disable Dino Decay Pv E" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.DisableDinoDecayPvE}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Disable Dino Decay Pv P" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.DisableDinoDecayPvP}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Disable Dino Riding" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.DisableDinoRiding}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Disable Dino Taming" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.DisableDinoTaming}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Disable Imprint Dino Buff" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.DisableImprintDinoBuff}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Egg Hatch Speed Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.EggHatchSpeedMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Lay Egg Interval Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.LayEggIntervalMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Mating Interval Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.MatingIntervalMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Max Personal Tamed Dinos" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.MaxPersonalTamedDinos}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Max Tamed Dinos" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.MaxTamedDinos}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Minimum Dino Reupload Interval" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.MinimumDinoReuploadInterval}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Override Max Experience Points Dino" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.OverrideMaxExperiencePointsDino}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Passive Defenses Damage Riderless Dinos" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.PassiveDefensesDamageRiderlessDinos}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Passive Tame Interval Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.PassiveTameIntervalMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Prevent Download Dinos" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.PreventDownloadDinos}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Prevent Upload Dinos" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.PreventUploadDinos}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Pv EDino Decay Period Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.PvEDinoDecayPeriodMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Raid Dino Character Food Drain Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.RaidDinoCharacterFoodDrainMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Server Auto Force Respawn Wild Dinos Interval" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.ServerAutoForceRespawnWildDinosInterval}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Tamed Dino Character Food Drain Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.TamedDinoCharacterFoodDrainMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Tamed Dino Damage Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.TamedDinoDamageMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Tamed Dino Resistance Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.TamedDinoResistanceMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Tamed Dino Torpor Drain Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.TamedDinoTorporDrainMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Tribute Dino Expiration Seconds" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.TributeDinoExpirationSeconds}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Wild Dino Character Food Drain Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.WildDinoCharacterFoodDrainMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Wild Dino Torpor Drain Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.WildDinoTorporDrainMultiplier}" />
+                        </Grid>
+                    </StackPanel>
+                </Expander>
+
+                <Expander Header="Items, Engrams and Crafting" IsExpanded="False">
+                    <StackPanel Margin="0,12,0,0">
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Allow Custom Recipes" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.AllowCustomRecipes}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Auto Unlock All Engrams" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.AutoUnlockAllEngrams}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Clamp Item Spoiling Times" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.ClampItemSpoilingTimes}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Crafting Skill Bonus Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.CraftingSkillBonusMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Craft XPMultiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.CraftXPMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Custom Recipe Effectiveness Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.CustomRecipeEffectivenessMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Custom Recipe Skill Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.CustomRecipeSkillMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Disable Loot Crates" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.DisableLootCrates}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Fishing Loot Quality Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.FishingLootQualityMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Global Item Decomposition Time Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.GlobalItemDecompositionTimeMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Global Powered Battery Durability Decrease Per Second" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.GlobalPoweredBatteryDurabilityDecreasePerSecond}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Global Spoiling Time Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.GlobalSpoilingTimeMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Only Allow Specified Engrams" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.OnlyAllowSpecifiedEngrams}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Prevent Download Items" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.PreventDownloadItems}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Prevent Upload Items" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.PreventUploadItems}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Random Supply Crate Points" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.RandomSupplyCratePoints}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Supply Crate Loot Quality Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.SupplyCrateLootQualityMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Tribute Item Expiration Seconds" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.TributeItemExpirationSeconds}" />
+                        </Grid>
+                    </StackPanel>
+                </Expander>
+
+                <Expander Header="Other server settings" IsExpanded="False">
+                    <StackPanel Margin="0,12,0,0">
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Allow Hit Markers" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.AllowHitMarkers}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Allow Multiple Attached C4" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.AllowMultipleAttachedC4}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Allow Unlimited Respecs" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.AllowUnlimitedRespecs}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Auto Save Period Minutes" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.AutoSavePeriodMinutes}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Base Temperature Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.BaseTemperatureMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Enable Diseases" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.EnableDiseases}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Enable Flyer Carry" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.EnableFlyerCarry}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Enable Tribute Downloads" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.EnableTributeDownloads}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Non Permanent Diseases" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.NonPermanentDiseases}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="NPCNetwork Stasis Range Scale Percent End" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.NPCNetworkStasisRangeScalePercentEnd}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Override Official Difficulty" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.OverrideOfficialDifficulty}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="PGM_Name" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.PGM_Name}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Prevent Download Survivors" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.PreventDownloadSurvivors}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Prevent Mate Boost" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.PreventMateBoost}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Prevent Spawn Animations" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.PreventSpawnAnimations}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Prevent Upload Survivors" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.PreventUploadSurvivors}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Server IP" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.ServerIP}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="SOTF_Time To Collapse ROD" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.SOTF_TimeToCollapseROD}" />
+                        </Grid>
+                    </StackPanel>
+                </Expander>
+
+                <Expander Header="Player and Stats" IsExpanded="False">
+                    <StackPanel Margin="0,12,0,0">
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Allow Flying Stamina Recovery" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.AllowFlyingStaminaRecovery}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Allow HUD" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.AllowHUD}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Crop Growth Speed Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.CropGrowthSpeedMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Destroy Unconnected Water Pipes" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.DestroyUnconnectedWaterPipes}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Generic XPMultiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.GenericXPMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Hair Growth Speed Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.HairGrowthSpeedMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Harvest Health Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.HarvestHealthMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Harvest XPMultiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.HarvestXPMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Kick Idle Players Period" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.KickIdlePlayersPeriod}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Kill XPMultiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.KillXPMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="NPCNetwork Stasis Range Scale Player Count End" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.NPCNetworkStasisRangeScalePlayerCountEnd}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="NPCNetwork Stasis Range Scale Player Count Start" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.NPCNetworkStasisRangeScalePlayerCountStart}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Override Max Experience Points Player" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.OverrideMaxExperiencePointsPlayer}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Oxygen Swim Speed Stat Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.OxygenSwimSpeedStatMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Player Character Health Recovery Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.PlayerCharacterHealthRecoveryMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Player Resistance Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.PlayerResistanceMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Resource No Replenish Radius Players" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.ResourceNoReplenishRadiusPlayers}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Show Map Player Location" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.ShowMapPlayerLocation}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Special XPMultiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.SpecialXPMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Tribute Character Expiration Seconds" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.TributeCharacterExpirationSeconds}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Use Optimized Harvesting Health" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.UseOptimizedHarvestingHealth}" />
+                        </Grid>
+                    </StackPanel>
+                </Expander>
+
+                <Expander Header="PvP and Combat" IsExpanded="False">
+                    <StackPanel Margin="0,12,0,0">
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Allow Hide Damage Source From Logs" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.AllowHideDamageSourceFromLogs}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Allow Pv EGamma" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.AllowPvEGamma}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Allow PVPGamma" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.AllowPVPGamma}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Allow Tribe War Cancel Pv E" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.AllowTribeWarCancelPvE}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Allow Tribe War Pv E" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.AllowTribeWarPvE}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Auto Pv EStart Time Seconds" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.AutoPvEStartTimeSeconds}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Auto Pv EStop Time Seconds" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.AutoPvEStopTimeSeconds}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Auto Pv ETimer" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.AutoPvETimer}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Auto Pv EUse System Time" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.AutoPvEUseSystemTime}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Clamp Resource Harvest Damage" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.ClampResourceHarvestDamage}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Disable Friendly Fire Pv E" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.DisableFriendlyFirePvE}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Disable Friendly Fire Pv P" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.DisableFriendlyFirePvP}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Increase Pv PRespawn Interval" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.IncreasePvPRespawnInterval}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Increase Pv PRespawn Interval Base Amount" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.IncreasePvPRespawnIntervalBaseAmount}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Increase Pv PRespawn Interval Check Period" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.IncreasePvPRespawnIntervalCheckPeriod}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Increase Pv PRespawn Interval Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.IncreasePvPRespawnIntervalMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Player Damage Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.PlayerDamageMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Player Harvesting Damage Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.PlayerHarvestingDamageMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Prevent Offline Pv P" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.PreventOfflinePvP}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Prevent Offline Pv PConnection Invincible Interval" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.PreventOfflinePvPConnectionInvincibleInterval}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Prevent Offline Pv PInterval" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.PreventOfflinePvPInterval}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Show Floating Damage Text" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.ShowFloatingDamageText}" />
+                        </Grid>
+                    </StackPanel>
+                </Expander>
+
+                <Expander Header="Structures and Building" IsExpanded="False">
+                    <StackPanel Margin="0,12,0,0">
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Allow Cave Building Pv E" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.AllowCaveBuildingPvE}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Allow Platform Saddle Multi Floors" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.AllowPlatformSaddleMultiFloors}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Auto Destroy Old Structures Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.AutoDestroyOldStructuresMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Dino Turret Damage Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.DinoTurretDamageMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Disable Structure Decay Pve" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.DisableStructureDecayPve}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Disable Structure Placement Collision" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.DisableStructurePlacementCollision}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Enable Extra Structure Prevention Volumes" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.EnableExtraStructurePreventionVolumes}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Enable Structure Decay Pv E" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.EnableStructureDecayPvE}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Fast Decay Unsnapped Core Structures" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.FastDecayUnsnappedCoreStructures}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Flyer Platform Allow Unaligned Dino Basing" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.FlyerPlatformAllowUnalignedDinoBasing}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Force All Structure Locking" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.ForceAllStructureLocking}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Hard Limit Turrets In Range" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.HardLimitTurretsInRange}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Limit Turrets In Range" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.LimitTurretsInRange}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Limit Turrets Num" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.LimitTurretsNum}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Limit Turrets Range" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.LimitTurretsRange}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Max Platform Saddle Structure Limit" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.MaxPlatformSaddleStructureLimit}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Max Structures Visible" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.MaxStructuresVisible}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Only Auto Destroy Core Structures" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.OnlyAutoDestroyCoreStructures}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Only Decay Unsnapped Core Structures" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.OnlyDecayUnsnappedCoreStructures}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Override Structure Platform Prevention" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.OverrideStructurePlatformPrevention}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Per Platform Max Structures Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.PerPlatformMaxStructuresMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Personal Tamed Dinos Saddle Structure Cost" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.PersonalTamedDinosSaddleStructureCost}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Pv EAllow Structures At Supply Drops" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.PvEAllowStructuresAtSupplyDrops}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Pv EStructure Decay Destruction Period" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.PvEStructureDecayDestructionPeriod}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Pv EStructure Decay Period Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.PvEStructureDecayPeriodMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Pv PStructure Decay" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.PvPStructureDecay}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Pv PZone Structure Damage Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.PvPZoneStructureDamageMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Resource No Replenish Radius Structures" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.ResourceNoReplenishRadiusStructures}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Structure Damage Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.StructureDamageMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Structure Damage Repair Cooldown" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.StructureDamageRepairCooldown}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Structure Resistance Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.StructureResistanceMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Tribe Log Destroyed Enemy Structures" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.TribeLogDestroyedEnemyStructures}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Use Tame Limit For Structures Only" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.UseTameLimitForStructuresOnly}" />
+                        </Grid>
+                    </StackPanel>
+                </Expander>
+
+                <Expander Header="World and Environment" IsExpanded="False">
+                    <StackPanel Margin="0,12,0,0">
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Crop Decay Speed Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.CropDecaySpeedMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Day Time Speed Scale" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.DayTimeSpeedScale}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Disable Weather Fog" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.DisableWeatherFog}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Extinction Event Time Interval" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.ExtinctionEventTimeInterval}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Extinction Event UTC" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.ExtinctionEventUTC}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Fast Decay Interval" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.FastDecayInterval}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Global Corpse Decomposition Time Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.GlobalCorpseDecompositionTimeMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Night Time Speed Scale" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.NightTimeSpeedScale}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Player Character Food Drain Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.PlayerCharacterFoodDrainMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Player Character Stamina Drain Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.PlayerCharacterStaminaDrainMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Player Character Water Drain Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.PlayerCharacterWaterDrainMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Poop Interval Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.PoopIntervalMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Resources Respawn Period Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.ResourcesRespawnPeriodMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="SOTF_Battle Auto Restart Game Interval" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.SOTF_BattleAutoRestartGameInterval}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="SOTF_Battle Auto Start Game Interval" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.SOTF_BattleAutoStartGameInterval}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="SOTF_Battle Sudden Death Interval" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.SOTF_BattleSuddenDeathInterval}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Use Corpse Life Span Multiplier" />
+                            <TextBox Grid.Column="1" Text="{Binding Profile.UseCorpseLifeSpanMultiplier}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="260,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Use Corpse Locator" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.UseCorpseLocator}" />
+                        </Grid>
+                    </StackPanel>
+                </Expander>
+
+                <Expander Header="Advanced overrides (raw values)" IsExpanded="False">
+                    <StackPanel Margin="0,12,0,0">
+                        <TextBlock Text="One entry per line, in the exact format the game .ini expects (e.g. an override list entry looks like (ClassName=&quot;Rex_Character_BP_C&quot;,Multiplier=1.5)). Advanced - leave empty unless you know the exact syntax."
+                                   Opacity="0.7" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,12" />
+                        <TextBlock Classes="FieldLabel" Text="Config Add NPCSpawn Entries Container" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding Profile.ConfigAddNPCSpawnEntriesContainer, Converter={x:Static conv:StringListConverter.Instance}}"
+                                  AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" Margin="0,0,0,12" FontFamily="Consolas,Cascadia Mono,monospace" FontSize="11" />
+                        <TextBlock Classes="FieldLabel" Text="Config Override Item Crafting Costs" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding Profile.ConfigOverrideItemCraftingCosts, Converter={x:Static conv:StringListConverter.Instance}}"
+                                  AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" Margin="0,0,0,12" FontFamily="Consolas,Cascadia Mono,monospace" FontSize="11" />
+                        <TextBlock Classes="FieldLabel" Text="Config Override NPCSpawn Entries Container" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding Profile.ConfigOverrideNPCSpawnEntriesContainer, Converter={x:Static conv:StringListConverter.Instance}}"
+                                  AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" Margin="0,0,0,12" FontFamily="Consolas,Cascadia Mono,monospace" FontSize="11" />
+                        <TextBlock Classes="FieldLabel" Text="Config Override Supply Crate Items" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding Profile.ConfigOverrideSupplyCrateItems, Converter={x:Static conv:StringListConverter.Instance}}"
+                                  AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" Margin="0,0,0,12" FontFamily="Consolas,Cascadia Mono,monospace" FontSize="11" />
+                        <TextBlock Classes="FieldLabel" Text="Config Subtract NPCSpawn Entries Container" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding Profile.ConfigSubtractNPCSpawnEntriesContainer, Converter={x:Static conv:StringListConverter.Instance}}"
+                                  AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" Margin="0,0,0,12" FontFamily="Consolas,Cascadia Mono,monospace" FontSize="11" />
+                        <TextBlock Classes="FieldLabel" Text="Dino Class Damage Multipliers" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding Profile.DinoClassDamageMultipliers, Converter={x:Static conv:StringListConverter.Instance}}"
+                                  AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" Margin="0,0,0,12" FontFamily="Consolas,Cascadia Mono,monospace" FontSize="11" />
+                        <TextBlock Classes="FieldLabel" Text="Dino Class Resistance Multipliers" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding Profile.DinoClassResistanceMultipliers, Converter={x:Static conv:StringListConverter.Instance}}"
+                                  AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" Margin="0,0,0,12" FontFamily="Consolas,Cascadia Mono,monospace" FontSize="11" />
+                        <TextBlock Classes="FieldLabel" Text="Dino Spawn Weight Multipliers" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding Profile.DinoSpawnWeightMultipliers, Converter={x:Static conv:StringListConverter.Instance}}"
+                                  AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" Margin="0,0,0,12" FontFamily="Consolas,Cascadia Mono,monospace" FontSize="11" />
+                        <TextBlock Classes="FieldLabel" Text="Harvest Resource Item Amount Class Multipliers" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding Profile.HarvestResourceItemAmountClassMultipliers, Converter={x:Static conv:StringListConverter.Instance}}"
+                                  AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" Margin="0,0,0,12" FontFamily="Consolas,Cascadia Mono,monospace" FontSize="11" />
+                        <TextBlock Classes="FieldLabel" Text="NPCReplacements" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding Profile.NPCReplacements, Converter={x:Static conv:StringListConverter.Instance}}"
+                                  AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" Margin="0,0,0,12" FontFamily="Consolas,Cascadia Mono,monospace" FontSize="11" />
+                        <TextBlock Classes="FieldLabel" Text="Override Named Engram Entries" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding Profile.OverrideNamedEngramEntries, Converter={x:Static conv:StringListConverter.Instance}}"
+                                  AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" Margin="0,0,0,12" FontFamily="Consolas,Cascadia Mono,monospace" FontSize="11" />
+                        <TextBlock Classes="FieldLabel" Text="Prevent Dino Tame Class Names" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding Profile.PreventDinoTameClassNames, Converter={x:Static conv:StringListConverter.Instance}}"
+                                  AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" Margin="0,0,0,12" FontFamily="Consolas,Cascadia Mono,monospace" FontSize="11" />
+                        <TextBlock Classes="FieldLabel" Text="Tamed Dino Class Damage Multipliers" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding Profile.TamedDinoClassDamageMultipliers, Converter={x:Static conv:StringListConverter.Instance}}"
+                                  AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" Margin="0,0,0,12" FontFamily="Consolas,Cascadia Mono,monospace" FontSize="11" />
+                        <TextBlock Classes="FieldLabel" Text="Tamed Dino Class Resistance Multipliers" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding Profile.TamedDinoClassResistanceMultipliers, Converter={x:Static conv:StringListConverter.Instance}}"
+                                  AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" Margin="0,0,0,12" FontFamily="Consolas,Cascadia Mono,monospace" FontSize="11" />
+                    </StackPanel>
+                </Expander>
+
+                </StackPanel>
             </StackPanel>
         </ScrollViewer>
     </DockPanel>
