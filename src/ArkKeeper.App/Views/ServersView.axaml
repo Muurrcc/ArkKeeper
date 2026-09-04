@@ -12,7 +12,7 @@
     <DockPanel Margin="24">
         <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
             <TextBlock Grid.Column="0" Text="Servers" FontSize="24" FontWeight="SemiBold" />
-            <Button Grid.Column="1" Content="Add server" Command="{Binding AddServerCommand}" />
+            <Button Grid.Column="1" Classes="Pill accent" Content="Add server" Command="{Binding AddServerCommand}" />
         </Grid>
 
         <TextBlock DockPanel.Dock="Top"
@@ -20,20 +20,20 @@
                    Opacity="0.7" Margin="0,0,0,16"
                    IsVisible="{Binding IsEmpty}" />
 
+        <ScrollViewer>
         <ItemsControl ItemsSource="{Binding Servers}">
             <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:ServerRowViewModel">
-                    <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                            CornerRadius="8" Padding="16" Margin="0,0,0,12">
-                        <StackPanel Spacing="12">
+                    <Border Classes="Card" Margin="0,0,0,12">
+                        <StackPanel Spacing="14">
                             <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto">
-                                <Ellipse Grid.Column="0" Width="10" Height="10" VerticalAlignment="Center" Margin="0,0,12,0">
-                                    <Ellipse.Fill>
+                                <Border Grid.Column="0" Classes="IconCircle" Width="34" Height="34" Margin="0,0,14,0">
+                                    <Border.Background>
                                         <SolidColorBrush Color="{Binding IsRunning, Converter={x:Static conv:RunningColorConverter.Instance}}" />
-                                    </Ellipse.Fill>
-                                </Ellipse>
+                                    </Border.Background>
+                                </Border>
 
-                                <StackPanel Grid.Column="1" Spacing="2" MinWidth="120">
+                                <StackPanel Grid.Column="1" Spacing="2" MinWidth="120" VerticalAlignment="Center">
                                     <TextBlock Text="{Binding Profile.ProfileName}" FontWeight="SemiBold" FontSize="15" />
                                     <TextBlock Text="{Binding Profile.SessionName}" Opacity="0.7" FontSize="12" />
                                 </StackPanel>
@@ -48,9 +48,9 @@
                                     <TextBlock Text="{Binding Profile.MaxPlayers}" HorizontalAlignment="Right" />
                                 </StackPanel>
 
-                                <Border Grid.Column="4" CornerRadius="4" Padding="8,4" VerticalAlignment="Center"
+                                <Border Grid.Column="4" Classes="PillSmall" VerticalAlignment="Center"
                                         Background="{DynamicResource SystemFillColorSuccessBrush}">
-                                    <TextBlock Text="{Binding Profile.PveMode, Converter={x:Static conv:PveBadgeConverter.Instance}}" FontSize="12" />
+                                    <TextBlock Text="{Binding Profile.PveMode, Converter={x:Static conv:PveBadgeConverter.Instance}}" FontSize="12" FontWeight="SemiBold" />
                                 </Border>
                             </Grid>
 
@@ -58,6 +58,7 @@
                                 <WrapPanel.Styles>
                                     <Style Selector="Button">
                                         <Setter Property="Margin" Value="0,0,8,8" />
+                                        <Setter Property="CornerRadius" Value="10" />
                                     </Style>
                                 </WrapPanel.Styles>
                                 <Button Content="Start" Command="{Binding StartCommand}" />
@@ -95,5 +96,6 @@
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
+        </ScrollViewer>
     </DockPanel>
 </UserControl>

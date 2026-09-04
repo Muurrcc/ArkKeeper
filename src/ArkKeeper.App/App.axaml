@@ -10,7 +10,19 @@
         <local:ViewLocator />
     </Application.DataTemplates>
 
+    <Application.Resources>
+        <ResourceDictionary>
+            <!-- Global rounding: every standard control (Button, TextBox, ComboBox, CheckBox...)
+                 reads these two theme tokens, so overriding them here re-skins the whole app at
+                 once toward the soft, heavily-rounded look the app is going for, instead of
+                 hand-tuning CornerRadius on every single control. -->
+            <CornerRadius x:Key="ControlCornerRadius">12</CornerRadius>
+            <CornerRadius x:Key="OverlayCornerRadius">16</CornerRadius>
+        </ResourceDictionary>
+    </Application.Resources>
+
     <Application.Styles>
         <styling:FluentAvaloniaTheme PreferSystemTheme="True" PreferUserAccentColor="True" />
+        <StyleInclude Source="avares://ArkKeeper.App/Styles/SoftStyles.axaml" />
     </Application.Styles>
 </Application>

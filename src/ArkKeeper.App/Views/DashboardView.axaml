@@ -3,50 +3,79 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:ArkKeeper.App.ViewModels"
+             xmlns:conv="using:ArkKeeper.App.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="ArkKeeper.App.Views.DashboardView"
              x:DataType="vm:DashboardViewModel">
 
-    <StackPanel Margin="24" Spacing="16">
-        <TextBlock Text="Dashboard" FontSize="24" FontWeight="SemiBold" />
+    <ScrollViewer>
+        <StackPanel Margin="24" Spacing="24">
+            <TextBlock Text="Dashboard" FontSize="24" FontWeight="SemiBold" />
 
-        <StackPanel Orientation="Horizontal" Spacing="16">
-            <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                    CornerRadius="8" Padding="16" Width="180">
-                <StackPanel Spacing="4">
-                    <TextBlock Text="{Binding ServerCount}" FontSize="28" FontWeight="Bold" />
-                    <TextBlock Text="Server profiles" Opacity="0.7" />
-                </StackPanel>
-            </Border>
-            <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                    CornerRadius="8" Padding="16" Width="180">
-                <StackPanel Spacing="4">
-                    <TextBlock Text="{Binding RunningCount}" FontSize="28" FontWeight="Bold" />
-                    <TextBlock Text="Running now" Opacity="0.7" />
-                </StackPanel>
-            </Border>
-            <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                    CornerRadius="8" Padding="16" Width="180">
-                <StackPanel Spacing="4">
-                    <TextBlock Text="{Binding TotalCapacity}" FontSize="28" FontWeight="Bold" />
-                    <TextBlock Text="Total player slots" Opacity="0.7" />
-                </StackPanel>
-            </Border>
-        </StackPanel>
-
-        <TextBlock Text="Servers" FontSize="16" FontWeight="SemiBold" Margin="0,8,0,0" />
-        <ItemsControl ItemsSource="{Binding Servers}">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="vm:ServerRowViewModel">
-                    <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                            CornerRadius="6" Padding="12" Margin="0,0,0,8">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <TextBlock Text="{Binding Profile.ProfileName}" FontWeight="SemiBold" />
-                            <TextBlock Text="{Binding Profile.SessionName}" Opacity="0.7" />
-                        </StackPanel>
+            <StackPanel HorizontalAlignment="Center" Spacing="10">
+                <TextBlock Text="RUNNING NOW" Opacity="0.55" FontSize="12" FontWeight="SemiBold"
+                           HorizontalAlignment="Center" />
+                <StackPanel Orientation="Horizontal" Spacing="14" HorizontalAlignment="Center">
+                    <Border Classes="IconCircle" Width="44" Height="44"
+                            Background="{DynamicResource SystemFillColorSuccessBrush}">
+                        <TextBlock Text="▶" FontSize="18" FontWeight="Bold"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-    </StackPanel>
+                    <TextBlock Classes="BigNumber" Text="{Binding RunningCount}" VerticalAlignment="Center" />
+                </StackPanel>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center">
+                <Border Classes="Pill" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Border Classes="IconCircle" Width="26" Height="26" Background="{DynamicResource SystemFillColorAttentionBrush}">
+                            <TextBlock Text="🖥" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel>
+                            <TextBlock Classes="StatNumber" Text="{Binding ServerCount}" />
+                            <TextBlock Text="Profiles" Opacity="0.6" FontSize="11" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+                <Border Classes="Pill" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Border Classes="IconCircle" Width="26" Height="26" Background="{DynamicResource SystemFillColorCautionBrush}">
+                            <TextBlock Text="👥" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel>
+                            <TextBlock Classes="StatNumber" Text="{Binding TotalCapacity}" />
+                            <TextBlock Text="Player slots" Opacity="0.6" FontSize="11" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <StackPanel Spacing="12">
+                <TextBlock Text="Servers" FontSize="16" FontWeight="SemiBold" />
+                <ItemsControl ItemsSource="{Binding Servers}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ServerRowViewModel">
+                            <Border Classes="Card" Margin="0,0,0,10">
+                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                    <Border Grid.Column="0" Classes="IconCircle" Width="36" Height="36" Margin="0,0,14,0">
+                                        <Border.Background>
+                                            <SolidColorBrush Color="{Binding IsRunning, Converter={x:Static conv:RunningColorConverter.Instance}}" />
+                                        </Border.Background>
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Profile.ProfileName}" FontWeight="SemiBold" FontSize="15" />
+                                        <TextBlock Text="{Binding Profile.SessionName}" Opacity="0.6" FontSize="12" />
+                                    </StackPanel>
+                                    <Border Grid.Column="2" Classes="PillSmall" VerticalAlignment="Center"
+                                            Background="{DynamicResource SystemFillColorSuccessBrush}">
+                                        <TextBlock Text="{Binding Profile.PveMode, Converter={x:Static conv:PveBadgeConverter.Instance}}" FontSize="12" FontWeight="SemiBold" />
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>
