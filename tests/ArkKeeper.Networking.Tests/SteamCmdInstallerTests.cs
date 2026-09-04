@@ -25,6 +25,24 @@ public class SteamCmdInstallerTests : IDisposable
     }
 
     [Fact]
+    public async Task EnsureInstalledAsync_GivenTheExePathItselfInsteadOfItsDirectory_ReturnsItDirectly()
+    {
+        // A real user mistake: typing the full path to steamcmd.exe into a "SteamCMD directory"
+        // setting instead of its containing folder. Directory.CreateDirectory(installDirectory)
+        // would otherwise throw, since a file already occupies exactly that path.
+        Directory.CreateDirectory(_directory);
+        var exePath = Path.Combine(_directory, "steamcmd.exe");
+        await File.WriteAllTextAsync(exePath, "already here");
+
+        var handler = new ThrowingHttpMessageHandler();
+        var installer = new SteamCmdInstaller(new HttpClient(handler));
+
+        var result = await installer.EnsureInstalledAsync(exePath);
+
+        Assert.Equal(exePath, result);
+    }
+
+    [Fact]
     public async Task EnsureInstalledAsync_WhenMissing_DownloadsAndExtractsZip()
     {
         var zipBytes = BuildFakeSteamCmdZip();

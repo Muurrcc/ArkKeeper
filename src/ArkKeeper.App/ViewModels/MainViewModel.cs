@@ -96,7 +96,7 @@ public partial class MainViewModel : ViewModelBase
     /// <see cref="ServersViewModel"/> as a delegate rather than having it own navigation itself —
     /// only MainViewModel knows about <see cref="SelectedPage"/>.</summary>
     private void OpenEditor(ServerProfile? existing) =>
-        SelectedPage = new ProfileEditorViewModel(existing, Profiles, _profileStore, () => SelectedPage = ServersPage);
+        SelectedPage = new ProfileEditorViewModel(existing, Profiles, _profileStore, SettingsPage.SteamCmdDirectory, () => SelectedPage = ServersPage);
 
     /// <summary>Opens the RCON console for one server. Same navigation pattern as
     /// <see cref="OpenEditor"/>.</summary>

@@ -61,6 +61,30 @@
                                         Click="OnBrowseInstallDirectoryClick" />
                             </Grid>
                         </Grid>
+
+                        <Grid Classes="FieldRow" ColumnDefinitions="200,*">
+                            <TextBlock Grid.Column="0" />
+                            <Button Grid.Column="1" Content="Install / update server"
+                                    Command="{Binding InstallServerCommand}" HorizontalAlignment="Left" />
+                        </Grid>
+
+                        <TextBlock Text="{Binding InstallErrorMessage}"
+                                   IsVisible="{Binding InstallErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}"
+                                   Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                                   Margin="0,0,0,8" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding InstallStatusMessage}"
+                                   IsVisible="{Binding InstallStatusMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}"
+                                   Foreground="{DynamicResource SystemFillColorSuccessBrush}"
+                                   Margin="0,0,0,8" TextWrapping="Wrap" />
+
+                        <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" CornerRadius="6" Padding="10"
+                                IsVisible="{Binding InstallProgressLog, Converter={x:Static conv:StringNotEmptyConverter.Instance}}"
+                                MaxHeight="200">
+                            <ScrollViewer>
+                                <TextBlock Text="{Binding InstallProgressLog}" FontFamily="Consolas,Cascadia Mono,monospace"
+                                           FontSize="11" TextWrapping="Wrap" />
+                            </ScrollViewer>
+                        </Border>
                     </StackPanel>
                 </Expander>
 

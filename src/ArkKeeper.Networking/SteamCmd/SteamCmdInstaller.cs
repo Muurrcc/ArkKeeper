@@ -19,6 +19,16 @@ public sealed class SteamCmdInstaller
     /// and extracting Valve's official zip if it doesn't. Returns the full path to steamcmd.exe.</summary>
     public async Task<string> EnsureInstalledAsync(string installDirectory, CancellationToken cancellationToken = default)
     {
+        // Tolerate a caller passing the full path to an existing steamcmd.exe itself rather than
+        // its containing directory — an easy mistake given the setting this usually comes from is
+        // just labeled "SteamCMD directory". Directory.CreateDirectory would otherwise throw here
+        // ("... because a file or directory with the same name already exists"), since a file
+        // sits exactly where it wants to create a directory.
+        if (File.Exists(installDirectory) && Path.GetFileName(installDirectory).Equals("steamcmd.exe", StringComparison.OrdinalIgnoreCase))
+        {
+            return installDirectory;
+        }
+
         Directory.CreateDirectory(installDirectory);
         var executablePath = Path.Combine(installDirectory, "steamcmd.exe");
 
