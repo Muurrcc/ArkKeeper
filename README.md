@@ -6,29 +6,35 @@
 ![.NET 10](https://img.shields.io/badge/.NET-10-512BD4?style=flat&logo=dotnet&logoColor=white)
 ![Avalonia](https://img.shields.io/badge/UI-Avalonia-6D2BA1?style=flat)
 ![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)
-![Status](https://img.shields.io/badge/status-in%20development-orange)
 
-ArkKeeper is a **modernization and optimization** of [ARK Server Manager](https://arkservermanager.freeforums.net/), the classic WPF/.NET Framework tool for administering dedicated *ARK: Survival Evolved* servers. It isn't an original project built from scratch: it's a rewrite of the same codebase — originally from [ChronosWS/ARK-Dedicated-Server-Tool](https://github.com/ChronosWS/ARK-Dedicated-Server-Tool) — on top of .NET 10 and Avalonia, with a modern Windows 11-style interface (Mica, rounded corners, light/dark theme, accent color) and cross-platform support built in from the design stage.
+ArkKeeper is a **modernization and optimization** of [ARK Server Manager](https://arkservermanager.freeforums.net/), the classic WPF/.NET Framework tool for administering dedicated *ARK: Survival Evolved* servers. It isn't an original project built from scratch: it's a rewrite of the same codebase — originally from [ChronosWS/ARK-Dedicated-Server-Tool](https://github.com/ChronosWS/ARK-Dedicated-Server-Tool) — on top of .NET 10 and Avalonia, with a modern interface (Mica, rounded corners, three built-in themes, accent colors) and cross-platform support built in from the design stage.
 
 > **Legal notice:** ArkKeeper and its authors are not affiliated with Studio Wildcard or its partners. *ARK: Survival Evolved™* and its related images, trademarks, and rights are the exclusive property of Studio Wildcard and/or its affiliates. Free tool for legal use.
 
-## What it does (work in progress)
+## Features
 
-ArkKeeper reimplements, with progressive parity, the features of the original project:
-
-- **Server management**: multiple profiles, global and per-server configuration, start/stop/restart.
-- **RCON console**: send commands and monitor live.
-- **Players and tribes**: listings, profiles, ban management.
-- **Mods**: Steam Workshop integration.
-- **Discord**: notifications and commands from the server.
-- **Backups**: world save and restore.
-- **Auto-update** for both the server and the tool itself.
-
-The actual state of progress is reflected in this repository's commits and issues — not in this list, which describes the end goal.
+- **Server management** — create and edit any number of server profiles, covering all ~226 `GameUserSettings.ini`/`Game.ini` settings ARK exposes (rates & multipliers, rules, structures, taming, PvP, engrams, world/environment, chat, raw override lists), not just a curated subset. Settings are merged into the server's real config files rather than overwriting them, so manual edits and mod-added directives survive.
+- **Real process control** — Start / Stop / Kill against the actual dedicated server process. Stop asks the server to save and exit gracefully over RCON first, falling back to a hard kill if RCON is unreachable or the timeout elapses.
+- **Anti-cheat & performance** — toggle BattlEye off per server, and tune OS process priority and CPU core affinity without leaving the app.
+- **RCON console** — send commands and watch the live response log.
+- **Players and tribes** — connected-player list with kick/ban, known players and tribes parsed from save files.
+- **Backups** — one-click world save/restore, optionally compressed.
+- **Scheduler** — recurring or daily RCON tasks (e.g. `SaveWorld` every 6 hours) that keep running in the background.
+- **Mods** — add Steam Workshop mod IDs and download/update them via SteamCMD.
+- **Discord notifications** — server start/stop events posted to a webhook.
+- **Auto-update** — checks a JSON manifest for new ArkKeeper releases and downloads them.
+- **Three themes** — Light, OLED Black, and Navy Blue, plus five accent colors, switchable live from Settings.
 
 ## Screenshots
 
-_(Added once Phase 2 of the roadmap has the first navigable UI — see [Issues](../../issues))_
+| Navy Blue | OLED Black | Light |
+|---|---|---|
+| ![Dashboard, Navy Blue theme](docs/screenshots/dashboard-navy.png) | ![Servers page, OLED Black theme](docs/screenshots/dashboard-oled.png) | ![Dashboard, Light theme](docs/screenshots/dashboard-light.png) |
+| ![Servers page, Navy Blue theme](docs/screenshots/servers-navy.png) | ![Servers page, OLED Black theme](docs/screenshots/servers-oled.png) | ![Servers page, Light theme](docs/screenshots/servers-light.png) |
+
+Theme picker in Settings:
+
+![Settings page showing the theme picker, Navy Blue theme](docs/screenshots/settings-navy.png)
 
 ## Installation
 
