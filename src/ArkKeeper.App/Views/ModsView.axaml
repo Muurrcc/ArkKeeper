@@ -1,0 +1,64 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:ArkKeeper.App.ViewModels"
+             xmlns:conv="using:ArkKeeper.App.Converters"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="ArkKeeper.App.Views.ModsView"
+             x:DataType="vm:ModsViewModel"
+             x:Name="Root">
+
+    <DockPanel Margin="24">
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+            <StackPanel Grid.Column="0" Spacing="2">
+                <TextBlock FontSize="24" FontWeight="SemiBold" Text="Mods" />
+                <TextBlock Text="{Binding Profile.ProfileName}" Opacity="0.7" />
+            </StackPanel>
+            <Button Grid.Column="1" Content="Close" Command="{Binding CloseCommand}" />
+        </Grid>
+
+        <TextBlock DockPanel.Dock="Top"
+                   Text="{Binding ErrorMessage}"
+                   IsVisible="{Binding ErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}"
+                   Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                   Margin="0,0,0,8" TextWrapping="Wrap" />
+        <TextBlock DockPanel.Dock="Top"
+                   Text="{Binding StatusMessage}"
+                   IsVisible="{Binding StatusMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}"
+                   Foreground="{DynamicResource SystemFillColorSuccessBrush}"
+                   Margin="0,0,0,12" TextWrapping="Wrap" />
+
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+            <TextBox Grid.Column="0" Text="{Binding NewModId}"
+                      PlaceholderText="Steam Workshop item ID (e.g. 12345678)" />
+            <Button Grid.Column="1" Content="Add" Command="{Binding AddCommand}" Margin="8,0,0,0" />
+        </Grid>
+
+        <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding ModIds}" Margin="0,0,0,12">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                            CornerRadius="6" Padding="12" Margin="0,0,0,8">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Text="{Binding}" VerticalAlignment="Center" />
+                            <Button Grid.Column="1" Content="Remove"
+                                    Command="{Binding #Root.((vm:ModsViewModel)DataContext).RemoveCommand}"
+                                    CommandParameter="{Binding}" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <Button DockPanel.Dock="Top" Content="Download / update all mods"
+                Command="{Binding DownloadAllCommand}" Margin="0,0,0,12" />
+
+        <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="12">
+            <ScrollViewer>
+                <TextBlock Text="{Binding ProgressLog}" FontFamily="Consolas,Cascadia Mono,monospace"
+                           FontSize="12" TextWrapping="Wrap" />
+            </ScrollViewer>
+        </Border>
+    </DockPanel>
+</UserControl>

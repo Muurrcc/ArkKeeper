@@ -17,6 +17,7 @@ public sealed partial class ServersViewModel : ViewModelBase
     private readonly Action<ServerRowViewModel> _openPlayers;
     private readonly Action<ServerRowViewModel> _openBackups;
     private readonly Action<ServerRowViewModel> _openScheduler;
+    private readonly Action<ServerRowViewModel> _openMods;
 
     public ServersViewModel(
         ObservableCollection<ServerProfile> profiles,
@@ -26,7 +27,8 @@ public sealed partial class ServersViewModel : ViewModelBase
         Action<ServerRowViewModel> openConsole,
         Action<ServerRowViewModel> openPlayers,
         Action<ServerRowViewModel> openBackups,
-        Action<ServerRowViewModel> openScheduler)
+        Action<ServerRowViewModel> openScheduler,
+        Action<ServerRowViewModel> openMods)
     {
         _profiles = profiles;
         _fleet = fleet;
@@ -36,6 +38,7 @@ public sealed partial class ServersViewModel : ViewModelBase
         _openPlayers = openPlayers;
         _openBackups = openBackups;
         _openScheduler = openScheduler;
+        _openMods = openMods;
 
         foreach (var profile in profiles)
         {
@@ -88,6 +91,9 @@ public sealed partial class ServersViewModel : ViewModelBase
 
     [RelayCommand]
     private void Scheduler(ServerRowViewModel row) => _openScheduler(row);
+
+    [RelayCommand]
+    private void Mods(ServerRowViewModel row) => _openMods(row);
 
     [RelayCommand]
     private async Task DeleteAsync(ServerRowViewModel row)

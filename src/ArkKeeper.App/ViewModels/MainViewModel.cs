@@ -32,7 +32,7 @@ public partial class MainViewModel : ViewModelBase
         _profileStore = profileStore;
         _fleet = fleet;
 
-        ServersPage = new ServersViewModel(Profiles, fleet, _profileStore, OpenEditor, OpenConsole, OpenPlayers, OpenBackups, OpenScheduler);
+        ServersPage = new ServersViewModel(Profiles, fleet, _profileStore, OpenEditor, OpenConsole, OpenPlayers, OpenBackups, OpenScheduler, OpenMods);
         DashboardPage = new DashboardViewModel(ServersPage.Servers);
         SettingsPage = new SettingsViewModel(appSettingsStore);
 
@@ -117,4 +117,9 @@ public partial class MainViewModel : ViewModelBase
     /// <see cref="OpenEditor"/>.</summary>
     private void OpenScheduler(ServerRowViewModel row) =>
         SelectedPage = new SchedulerViewModel(row, () => SelectedPage = ServersPage);
+
+    /// <summary>Opens the mods page for one server. Same navigation pattern as
+    /// <see cref="OpenEditor"/>.</summary>
+    private void OpenMods(ServerRowViewModel row) =>
+        SelectedPage = new ModsViewModel(row, _profileStore, SettingsPage.SteamCmdDirectory, () => SelectedPage = ServersPage);
 }

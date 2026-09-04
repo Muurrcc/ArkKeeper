@@ -23,6 +23,7 @@ public sealed class ViewLocator : IDataTemplate
         [typeof(PlayersViewModel)] = () => new PlayersView(),
         [typeof(BackupsViewModel)] = () => new BackupsView(),
         [typeof(SchedulerViewModel)] = () => new SchedulerView(),
+        [typeof(ModsViewModel)] = () => new ModsView(),
     };
 
     public Control? Build(object? param)
