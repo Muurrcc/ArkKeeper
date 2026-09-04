@@ -58,8 +58,17 @@ public partial class SettingsViewModel : ViewModelBase
     [NotifyCanExecuteChangedFor(nameof(DownloadUpdateCommand))]
     public partial bool IsUpdateAvailable { get; set; }
 
-    public string CurrentVersion { get; } =
-        (Assembly.GetExecutingAssembly().GetName().Version ?? new Version(1, 0, 0, 0)).ToString();
+    public string CurrentVersion { get; } = FormatVersion(Assembly.GetExecutingAssembly().GetName().Version);
+
+    /// <summary>Newest-first version history — see <see cref="Changelog.Entries"/> for how to add
+    /// to this when a new version ships.</summary>
+    public IReadOnlyList<ChangelogEntry> ChangelogEntries => Changelog.Entries;
+
+    /// <summary>.NET assembly versions are always 4-part (Major.Minor.Build.Revision); trimmed to
+    /// the 3-part "1.0.0" shape a user actually expects to see, since the csproj's own
+    /// &lt;Version&gt; never sets a meaningful revision.</summary>
+    private static string FormatVersion(Version? version) =>
+        version is null ? "1.0.0" : $"{version.Major}.{version.Minor}.{version.Build}";
 
     /// <summary>Loads settings and applies theme/accent immediately. Called from
     /// <see cref="MainViewModel.InitializeAsync"/> before profiles load, so a configured Discord

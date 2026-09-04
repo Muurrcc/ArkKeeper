@@ -113,6 +113,41 @@
             </StackPanel>
             </Border>
 
+            <Border Classes="Card">
+            <StackPanel Spacing="8">
+                <TextBlock Text="Version" FontWeight="SemiBold" />
+                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <TextBlock Classes="StatNumber" Text="{Binding CurrentVersion}" />
+                    <Border Classes="PillSmall" Background="{DynamicResource SystemFillColorSuccessBrush}" VerticalAlignment="Center">
+                        <TextBlock Text="ArkKeeper" FontSize="11" FontWeight="SemiBold" />
+                    </Border>
+                </StackPanel>
+
+                <TextBlock Text="What's new" FontWeight="SemiBold" Margin="0,12,0,0" />
+                <ItemsControl ItemsSource="{Binding ChangelogEntries}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="services:ChangelogEntry">
+                            <StackPanel Spacing="4" Margin="0,0,0,14">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="{Binding Version}" FontWeight="SemiBold" FontSize="13" />
+                                    <TextBlock Text="{Binding Date}" Opacity="0.5" FontSize="12" VerticalAlignment="Center" />
+                                </StackPanel>
+                                <ItemsControl ItemsSource="{Binding Highlights}" Margin="4,2,0,0">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="x:String">
+                                            <TextBlock Opacity="0.8" FontSize="12" TextWrapping="Wrap" Margin="0,2,0,0">
+                                                <Run Text="•  " /><Run Text="{Binding}" />
+                                            </TextBlock>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+            </Border>
+
             <Button Classes="Pill accent" Content="Save settings" Command="{Binding SaveCommand}" HorizontalAlignment="Left" />
         </StackPanel>
     </ScrollViewer>
