@@ -1,10 +1,23 @@
 using ArkKeeper.Core.Profiles;
+using ArkKeeper.Discord;
 using Xunit;
 
 namespace ArkKeeper.Orchestration.Tests;
 
 public class ServerFleetTests
 {
+    [Fact]
+    public async Task GetOrAdd_AfterSettingNotifier_PassesItToNewlyCreatedServers()
+    {
+        await using var fleet = new ServerFleet();
+        var notifier = new DiscordWebhookNotifier(new HttpClient(), "https://discord.com/api/webhooks/1/a");
+
+        fleet.Notifier = notifier;
+        var server = fleet.GetOrAdd(new ServerProfile());
+
+        Assert.Same(notifier, server.Notifier);
+    }
+
     [Fact]
     public async Task GetOrAdd_CalledTwiceForSameProfile_ReturnsTheSameInstance()
     {

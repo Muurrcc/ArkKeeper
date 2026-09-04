@@ -1,5 +1,8 @@
 using System.Collections.ObjectModel;
+using System.Net.Http;
 using ArkKeeper.Core.Profiles;
+using ArkKeeper.Core.Settings;
+using ArkKeeper.Discord;
 using ArkKeeper.Orchestration;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -9,23 +12,28 @@ namespace ArkKeeper.App.ViewModels;
 public partial class MainViewModel : ViewModelBase
 {
     private readonly ProfileStore _profileStore;
+    private readonly ServerFleet _fleet;
     private readonly DispatcherTimer _statusPollTimer;
 
     /// <summary>Design-time/previewer-only constructor — the XAML compiler needs a parameterless
     /// constructor for `&lt;vm:MainViewModel /&gt;` in MainWindow.axaml's Design.DataContext.
     /// The real app always goes through the DI constructor below (see Program.cs).</summary>
     public MainViewModel()
-        : this(new ProfileStore(Path.Combine(Path.GetTempPath(), "ArkKeeperDesign")), new ServerFleet())
+        : this(
+            new ProfileStore(Path.Combine(Path.GetTempPath(), "ArkKeeperDesign")),
+            new ServerFleet(),
+            new AppSettingsStore(Path.Combine(Path.GetTempPath(), "ArkKeeperDesign", "settings.json")))
     {
     }
 
-    public MainViewModel(ProfileStore profileStore, ServerFleet fleet)
+    public MainViewModel(ProfileStore profileStore, ServerFleet fleet, AppSettingsStore appSettingsStore)
     {
         _profileStore = profileStore;
+        _fleet = fleet;
 
         ServersPage = new ServersViewModel(Profiles, fleet, _profileStore, OpenEditor, OpenConsole, OpenPlayers, OpenBackups);
         DashboardPage = new DashboardViewModel(ServersPage.Servers);
-        SettingsPage = new SettingsViewModel();
+        SettingsPage = new SettingsViewModel(appSettingsStore);
 
         SelectedPage = DashboardPage;
 
@@ -51,6 +59,15 @@ public partial class MainViewModel : ViewModelBase
 
     public async Task InitializeAsync()
     {
+        // Settings first: applies the saved theme/accent before the window is really seen, and
+        // makes sure a configured Discord webhook is wired into the fleet before any profile
+        // below gets its ManagedServer created.
+        await SettingsPage.InitializeAsync();
+        if (!string.IsNullOrWhiteSpace(SettingsPage.DiscordWebhookUrl))
+        {
+            _fleet.Notifier = new DiscordWebhookNotifier(new HttpClient(), SettingsPage.DiscordWebhookUrl);
+        }
+
         foreach (var profile in await _profileStore.LoadAllAsync())
         {
             Profiles.Add(profile);

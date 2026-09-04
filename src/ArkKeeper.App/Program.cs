@@ -2,6 +2,7 @@ using Avalonia;
 using System;
 using ArkKeeper.App.ViewModels;
 using ArkKeeper.Core.Profiles;
+using ArkKeeper.Core.Settings;
 using ArkKeeper.Orchestration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -45,6 +46,14 @@ sealed class Program
             return new ProfileStore(dataDirectory);
         });
         builder.Services.AddSingleton<ServerFleet>();
+        builder.Services.AddSingleton(_ =>
+        {
+            var filePath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "ArkKeeper",
+                "settings.json");
+            return new AppSettingsStore(filePath);
+        });
         builder.Services.AddSingleton<MainViewModel>();
 
         return builder.Build();
