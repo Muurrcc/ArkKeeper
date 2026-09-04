@@ -15,6 +15,7 @@ ArkKeeper is a **modernization and optimization** of [ARK Server Manager](https:
 
 ## Features
 
+- **Live dashboard** — real CPU/RAM usage per server (sampled from the actual OS process, not estimated), trend sparklines, and an activity feed of what your servers have actually been doing (starts, stops, backups).
 - **Server management** — create and edit any number of server profiles, covering all ~226 `GameUserSettings.ini`/`Game.ini` settings ARK exposes (rates & multipliers, rules, structures, taming, PvP, engrams, world/environment, chat, raw override lists), not just a curated subset. Settings are merged into the server's real config files rather than overwriting them, so manual edits and mod-added directives survive.
 - **Real process control** — Start / Stop / Kill against the actual dedicated server process. Stop asks the server to save and exit gracefully over RCON first, falling back to a hard kill if RCON is unreachable or the timeout elapses.
 - **Anti-cheat & performance** — toggle BattlEye off per server, and tune OS process priority and CPU core affinity without leaving the app.
@@ -31,7 +32,7 @@ ArkKeeper is a **modernization and optimization** of [ARK Server Manager](https:
 
 | Navy Blue | OLED Black | Light |
 |---|---|---|
-| ![Dashboard, Navy Blue theme](docs/screenshots/dashboard-navy.png) | ![Servers page, OLED Black theme](docs/screenshots/dashboard-oled.png) | ![Dashboard, Light theme](docs/screenshots/dashboard-light.png) |
+| ![Dashboard, Navy Blue theme](docs/screenshots/dashboard-navy.png) | ![Dashboard, OLED Black theme](docs/screenshots/dashboard-oled.png) | ![Dashboard, Light theme](docs/screenshots/dashboard-light.png) |
 | ![Servers page, Navy Blue theme](docs/screenshots/servers-navy.png) | ![Servers page, OLED Black theme](docs/screenshots/servers-oled.png) | ![Servers page, Light theme](docs/screenshots/servers-light.png) |
 
 Theme picker in Settings:

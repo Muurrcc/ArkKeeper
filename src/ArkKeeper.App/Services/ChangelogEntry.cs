@@ -8,6 +8,13 @@ public static class Changelog
 {
     public static IReadOnlyList<ChangelogEntry> Entries { get; } =
     [
+        new ChangelogEntry("1.1.0", "2026-09-04",
+        [
+            "Redesigned Dashboard: real CPU/RAM usage per server with trend sparklines, an activity feed of real events (starts, stops, backups), and Resource Metrics cards.",
+            "Fixed mods never actually reaching the server — Workshop downloads used the wrong Steam app id and were never copied into ShooterGame/Content/Mods, so a configured mod silently did nothing.",
+            "Fixed the Dashboard's CPU% readout appearing frozen while its trend graph kept moving.",
+            "Fixed switching back to the Light theme leaving every card tinted with the previous theme's color.",
+        ]),
         new ChangelogEntry("1.0.0", "2026-09-04",
         [
             "First release — full server management covering all ~226 GameUserSettings.ini/Game.ini settings, real start/stop/kill process control, and config that's actually written to the server's own files.",
