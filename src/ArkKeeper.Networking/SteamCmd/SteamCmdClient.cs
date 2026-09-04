@@ -11,6 +11,13 @@ public sealed class SteamCmdClient
     /// Steam's own app manifest (api.steamcmd.net), not guessed.</summary>
     public const int ArkDedicatedServerAppId = 376030;
 
+    /// <summary>Steam app id for the base game, "ARK: Survival Evolved" — Workshop items are
+    /// published against the *game*, not the dedicated server tool, so downloading a mod has to
+    /// use this id instead of <see cref="ArkDedicatedServerAppId"/>. Using the server's app id
+    /// here was the reason mods never actually reached a server: steamcmd downloaded nothing
+    /// useful against an app id that owns no Workshop items.</summary>
+    public const int ArkGameAppId = 346110;
+
     private readonly string _steamCmdExecutablePath;
 
     public SteamCmdClient(string steamCmdExecutablePath)
@@ -63,13 +70,53 @@ public sealed class SteamCmdClient
     public static string BuildWorkshopDownloadArguments(string installDirectory, string publishedFileId) => string.Join(' ',
         "+force_install_dir", Quote(installDirectory),
         "+login anonymous",
-        $"+workshop_download_item {ArkDedicatedServerAppId} {publishedFileId}",
+        $"+workshop_download_item {ArkGameAppId} {publishedFileId}",
         "+quit");
 
     /// <summary>Where SteamCMD puts a downloaded Workshop item's files, per its own fixed
-    /// steamapps/workshop/content/&lt;appid&gt;/&lt;publishedfileid&gt; convention.</summary>
+    /// steamapps/workshop/content/&lt;appid&gt;/&lt;publishedfileid&gt; convention. This is NOT
+    /// where the dedicated server actually looks for mod content — see
+    /// <see cref="DeployDownloadedMod"/>.</summary>
     public static string GetWorkshopItemPath(string installDirectory, string publishedFileId) =>
-        Path.Combine(installDirectory, "steamapps", "workshop", "content", ArkDedicatedServerAppId.ToString(), publishedFileId);
+        Path.Combine(installDirectory, "steamapps", "workshop", "content", ArkGameAppId.ToString(), publishedFileId);
+
+    /// <summary>Copies an already-downloaded Workshop item (see <see cref="DownloadWorkshopItemAsync"/>)
+    /// into <c>ShooterGame/Content/Mods/&lt;id&gt;</c>, which is where the ARK dedicated server
+    /// actually reads mod content from — steamcmd's own download location is never read by the
+    /// server directly. Also copies the sibling <c>&lt;id&gt;.mod</c> metadata file steamcmd
+    /// produces next to the content folder, which the server needs to recognize the mod at all.
+    /// A no-op if the download didn't actually produce anything (nothing to deploy).</summary>
+    public static void DeployDownloadedMod(string installDirectory, string publishedFileId)
+    {
+        var contentModsDirectory = Path.Combine(installDirectory, "ShooterGame", "Content", "Mods");
+
+        var sourceContent = GetWorkshopItemPath(installDirectory, publishedFileId);
+        if (Directory.Exists(sourceContent))
+        {
+            CopyDirectory(sourceContent, Path.Combine(contentModsDirectory, publishedFileId));
+        }
+
+        var sourceModFile = Path.Combine(installDirectory, "steamapps", "workshop", "content", ArkGameAppId.ToString(), $"{publishedFileId}.mod");
+        if (File.Exists(sourceModFile))
+        {
+            Directory.CreateDirectory(contentModsDirectory);
+            File.Copy(sourceModFile, Path.Combine(contentModsDirectory, $"{publishedFileId}.mod"), overwrite: true);
+        }
+    }
+
+    private static void CopyDirectory(string sourceDir, string destinationDir)
+    {
+        Directory.CreateDirectory(destinationDir);
+        foreach (var filePath in Directory.GetFiles(sourceDir))
+        {
+            File.Copy(filePath, Path.Combine(destinationDir, Path.GetFileName(filePath)), overwrite: true);
+        }
+
+        foreach (var subDir in Directory.GetDirectories(sourceDir))
+        {
+            CopyDirectory(subDir, Path.Combine(destinationDir, Path.GetFileName(subDir)));
+        }
+    }
 
     /// <summary>Internal (not private) so tests can exercise cancellation timing with an arbitrary
     /// executable/argument pair — the public methods above always pass steamcmd's own fixed flags,

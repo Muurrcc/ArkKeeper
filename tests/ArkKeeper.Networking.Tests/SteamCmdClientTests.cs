@@ -50,7 +50,9 @@ public class SteamCmdClientTests : IDisposable
 
         Assert.Contains("+force_install_dir \"C:\\Servers\\MyArk\"", arguments);
         Assert.Contains("+login anonymous", arguments);
-        Assert.Contains($"+workshop_download_item {SteamCmdClient.ArkDedicatedServerAppId} 731604991", arguments);
+        // Workshop items are published against the base game's app id, not the dedicated
+        // server's — using the wrong one is why mods never actually reached a server.
+        Assert.Contains($"+workshop_download_item {SteamCmdClient.ArkGameAppId} 731604991", arguments);
         Assert.EndsWith("+quit", arguments);
     }
 
@@ -60,8 +62,46 @@ public class SteamCmdClientTests : IDisposable
         var path = SteamCmdClient.GetWorkshopItemPath(@"C:\Servers\MyArk", "731604991");
 
         Assert.Equal(
-            Path.Combine(@"C:\Servers\MyArk", "steamapps", "workshop", "content", "376030", "731604991"),
+            Path.Combine(@"C:\Servers\MyArk", "steamapps", "workshop", "content", "346110", "731604991"),
             path);
+    }
+
+    [Fact]
+    public void DeployDownloadedMod_CopiesContentIntoShooterGameContentMods()
+    {
+        var sourceContent = SteamCmdClient.GetWorkshopItemPath(_directory, "731604991");
+        Directory.CreateDirectory(sourceContent);
+        File.WriteAllText(Path.Combine(sourceContent, "mod.info"), "fake mod content");
+        Directory.CreateDirectory(Path.Combine(sourceContent, "nested"));
+        File.WriteAllText(Path.Combine(sourceContent, "nested", "asset.uasset"), "fake asset");
+
+        SteamCmdClient.DeployDownloadedMod(_directory, "731604991");
+
+        var deployed = Path.Combine(_directory, "ShooterGame", "Content", "Mods", "731604991");
+        Assert.True(File.Exists(Path.Combine(deployed, "mod.info")));
+        Assert.True(File.Exists(Path.Combine(deployed, "nested", "asset.uasset")));
+    }
+
+    [Fact]
+    public void DeployDownloadedMod_CopiesTheSiblingModMetadataFile()
+    {
+        var workshopContentDir = Path.Combine(_directory, "steamapps", "workshop", "content", SteamCmdClient.ArkGameAppId.ToString());
+        Directory.CreateDirectory(workshopContentDir);
+        File.WriteAllText(Path.Combine(workshopContentDir, "731604991.mod"), "fake .mod metadata");
+
+        SteamCmdClient.DeployDownloadedMod(_directory, "731604991");
+
+        var deployedModFile = Path.Combine(_directory, "ShooterGame", "Content", "Mods", "731604991.mod");
+        Assert.True(File.Exists(deployedModFile));
+        Assert.Equal("fake .mod metadata", File.ReadAllText(deployedModFile));
+    }
+
+    [Fact]
+    public void DeployDownloadedMod_WhenNothingWasDownloaded_DoesNothingRatherThanThrow()
+    {
+        SteamCmdClient.DeployDownloadedMod(_directory, "731604991");
+
+        Assert.False(Directory.Exists(Path.Combine(_directory, "ShooterGame", "Content", "Mods")));
     }
 
     [Fact]

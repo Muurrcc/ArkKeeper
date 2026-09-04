@@ -123,6 +123,12 @@ public partial class ModsViewModel : ViewModelBase
             {
                 AppendLog($"--- Downloading workshop item {modId} ---");
                 var exitCode = await client.DownloadWorkshopItemAsync(Profile.InstallDirectory, modId, AppendLog, _downloadCts.Token);
+
+                // steamcmd's own download location (steamapps/workshop/content/...) is never read
+                // by the dedicated server — without copying it into ShooterGame/Content/Mods, the
+                // mod ID on the launch command line points at content the server can't find, and
+                // it silently loads as if no mods were specified at all.
+                SteamCmdClient.DeployDownloadedMod(Profile.InstallDirectory, modId);
                 AppendLog($"--- Item {modId} finished (exit code {exitCode}) ---");
             }
 
