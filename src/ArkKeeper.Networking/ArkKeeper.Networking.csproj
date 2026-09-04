@@ -10,4 +10,11 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <!-- Lets tests exercise SteamCmdClient.RunAsync directly with an arbitrary executable/argument
+         pair (e.g. a long-running cmd.exe command) — its public callers always pass steamcmd's own
+         fixed +force_install_dir/... flags, which isn't enough to test process-cancellation timing. -->
+    <InternalsVisibleTo Include="ArkKeeper.Networking.Tests" />
+  </ItemGroup>
+
 </Project>

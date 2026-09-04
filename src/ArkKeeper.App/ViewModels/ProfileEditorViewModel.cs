@@ -21,6 +21,7 @@ public partial class ProfileEditorViewModel : ViewModelBase
     private readonly ProfileStore _profileStore;
     private readonly string _steamCmdDirectory;
     private readonly Action _onClose;
+    private CancellationTokenSource? _installCts;
 
     public ProfileEditorViewModel(
         ServerProfile? existing,
@@ -82,6 +83,7 @@ public partial class ProfileEditorViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(InstallServerCommand))]
+    [NotifyCanExecuteChangedFor(nameof(QuitInstallCommand))]
     public partial bool IsInstalling { get; set; }
 
     [RelayCommand]
@@ -143,13 +145,14 @@ public partial class ProfileEditorViewModel : ViewModelBase
         }
 
         IsInstalling = true;
+        _installCts = new CancellationTokenSource();
         try
         {
             var installer = new SteamCmdInstaller(new HttpClient());
-            var steamCmdExecutable = await installer.EnsureInstalledAsync(_steamCmdDirectory);
+            var steamCmdExecutable = await installer.EnsureInstalledAsync(_steamCmdDirectory, _installCts.Token);
             var client = new SteamCmdClient(steamCmdExecutable);
 
-            await client.InstallOrUpdateAsync(Profile.InstallDirectory, AppendLog);
+            await client.InstallOrUpdateAsync(Profile.InstallDirectory, AppendLog, _installCts.Token);
 
             if (File.Exists(Profile.GetServerExecutablePath()))
             {
@@ -160,6 +163,10 @@ public partial class ProfileEditorViewModel : ViewModelBase
                 InstallErrorMessage = "SteamCMD finished, but the server executable wasn't found afterward — check the log above.";
             }
         }
+        catch (OperationCanceledException)
+        {
+            InstallStatusMessage = "Install cancelled.";
+        }
         catch (Exception ex)
         {
             InstallErrorMessage = $"Couldn't install the server: {ex.Message}";
@@ -167,10 +174,19 @@ public partial class ProfileEditorViewModel : ViewModelBase
         finally
         {
             IsInstalling = false;
+            _installCts?.Dispose();
+            _installCts = null;
         }
     }
 
     private bool CanInstall() => !IsInstalling;
+
+    /// <summary>Stops an in-progress install — the console box below the log, so the user isn't
+    /// stuck waiting out a multi-GB first-time download they didn't mean to start (or want to
+    /// abort partway through). Cancelling actually kills the steamcmd process (see
+    /// <c>SteamCmdClient.RunAsync</c>), not just abandons the await.</summary>
+    [RelayCommand(CanExecute = nameof(IsInstalling))]
+    private void QuitInstall() => _installCts?.Cancel();
 
     /// <summary>SteamCmdClient's output callback fires on the process's own background thread —
     /// marshal onto the UI thread before touching an observable property.</summary>

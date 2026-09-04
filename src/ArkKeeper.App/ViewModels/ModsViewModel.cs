@@ -17,6 +17,7 @@ public partial class ModsViewModel : ViewModelBase
     private readonly ProfileStore _profileStore;
     private readonly string _steamCmdDirectory;
     private readonly Action _onClose;
+    private CancellationTokenSource? _downloadCts;
 
     public ModsViewModel(ServerRowViewModel server, ProfileStore profileStore, string steamCmdDirectory, Action onClose)
     {
@@ -51,6 +52,7 @@ public partial class ModsViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(DownloadAllCommand))]
+    [NotifyCanExecuteChangedFor(nameof(QuitDownloadCommand))]
     public partial bool IsBusy { get; set; }
 
     [RelayCommand]
@@ -110,20 +112,25 @@ public partial class ModsViewModel : ViewModelBase
         }
 
         IsBusy = true;
+        _downloadCts = new CancellationTokenSource();
         try
         {
             var installer = new SteamCmdInstaller(new HttpClient());
-            var steamCmdExecutable = await installer.EnsureInstalledAsync(_steamCmdDirectory);
+            var steamCmdExecutable = await installer.EnsureInstalledAsync(_steamCmdDirectory, _downloadCts.Token);
             var client = new SteamCmdClient(steamCmdExecutable);
 
             foreach (var modId in ModIds.ToArray())
             {
                 AppendLog($"--- Downloading workshop item {modId} ---");
-                var exitCode = await client.DownloadWorkshopItemAsync(Profile.InstallDirectory, modId, AppendLog);
+                var exitCode = await client.DownloadWorkshopItemAsync(Profile.InstallDirectory, modId, AppendLog, _downloadCts.Token);
                 AppendLog($"--- Item {modId} finished (exit code {exitCode}) ---");
             }
 
             StatusMessage = "Finished downloading all mods.";
+        }
+        catch (OperationCanceledException)
+        {
+            StatusMessage = "Download cancelled.";
         }
         catch (Exception ex)
         {
@@ -132,10 +139,17 @@ public partial class ModsViewModel : ViewModelBase
         finally
         {
             IsBusy = false;
+            _downloadCts?.Dispose();
+            _downloadCts = null;
         }
     }
 
     private bool CanDownload() => !IsBusy;
+
+    /// <summary>Stops an in-progress mod download — same reasoning as
+    /// <see cref="ProfileEditorViewModel.QuitInstallCommand"/>.</summary>
+    [RelayCommand(CanExecute = nameof(IsBusy))]
+    private void QuitDownload() => _downloadCts?.Cancel();
 
     /// <summary>SteamCmdClient's output callback fires on the process's own background thread —
     /// marshal onto the UI thread before touching an observable property.</summary>

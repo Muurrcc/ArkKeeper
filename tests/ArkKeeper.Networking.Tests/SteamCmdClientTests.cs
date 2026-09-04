@@ -65,6 +65,24 @@ public class SteamCmdClientTests : IDisposable
     }
 
     [Fact]
+    public async Task RunAsync_WhenCancelled_ActuallyKillsTheProcessInsteadOfJustAbandoningTheAwait()
+    {
+        // A long-running stand-in process (steamcmd itself can run for minutes on a real
+        // download) — cancelling early and asserting the whole call returns quickly proves the
+        // process was actually killed, not just that the await stopped waiting on it.
+        var client = new SteamCmdClient(CmdExe);
+        using var cts = new CancellationTokenSource();
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+
+        var task = client.RunAsync("/c ping -n 30 127.0.0.1 >nul", onOutput: null, cts.Token);
+        await Task.Delay(300);
+        cts.Cancel();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
+        Assert.True(sw.ElapsedMilliseconds < 5000, $"Expected cancellation to kill the process quickly, took {sw.ElapsedMilliseconds}ms");
+    }
+
+    [Fact]
     public async Task DownloadWorkshopItemAsync_RunsTheGivenExecutableAndCreatesInstallDirectory()
     {
         var client = new SteamCmdClient(CmdExe);

@@ -105,6 +105,17 @@
                                            FontSize="11" TextWrapping="Wrap" SizeChanged="OnInstallLogSizeChanged" />
                             </ScrollViewer>
                         </Border>
+
+                        <!-- Below the log, only while it's actually running — a way out of a
+                             multi-GB first-time download without having to wait it out. -->
+                        <Border Classes="Card" IsVisible="{Binding IsInstalling}" Margin="0,8,0,0">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Grid.Column="0" Text="Installing in the background — you can quit if you don't want to wait."
+                                           Opacity="0.75" FontSize="12" VerticalAlignment="Center" TextWrapping="Wrap" />
+                                <Button Grid.Column="1" Classes="Danger" Content="Quit"
+                                        Command="{Binding QuitInstallCommand}" Margin="12,0,0,0" />
+                            </Grid>
+                        </Border>
                     </StackPanel>
                 </Expander>
 

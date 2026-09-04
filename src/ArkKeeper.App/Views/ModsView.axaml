@@ -68,11 +68,24 @@
                    FontFamily="Consolas,Cascadia Mono,monospace" FontWeight="SemiBold" FontSize="12"
                    Margin="0,0,0,8" TextWrapping="Wrap" />
 
-        <Border Classes="Card">
-            <ScrollViewer x:Name="ProgressLogScroll">
-                <TextBlock Text="{Binding ProgressLog}" FontFamily="Consolas,Cascadia Mono,monospace"
-                           FontSize="12" TextWrapping="Wrap" SizeChanged="OnProgressLogSizeChanged" />
-            </ScrollViewer>
-        </Border>
+        <StackPanel>
+            <Border Classes="Card">
+                <ScrollViewer x:Name="ProgressLogScroll">
+                    <TextBlock Text="{Binding ProgressLog}" FontFamily="Consolas,Cascadia Mono,monospace"
+                               FontSize="12" TextWrapping="Wrap" SizeChanged="OnProgressLogSizeChanged" />
+                </ScrollViewer>
+            </Border>
+
+            <!-- Below the log, only while it's actually running — a way out of a long mod
+                 download without having to wait it out. -->
+            <Border Classes="Card" IsVisible="{Binding IsBusy}" Margin="0,8,0,0">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0" Text="Downloading in the background — you can quit if you don't want to wait."
+                               Opacity="0.75" FontSize="12" VerticalAlignment="Center" TextWrapping="Wrap" />
+                    <Button Grid.Column="1" Classes="Danger" Content="Quit"
+                            Command="{Binding QuitDownloadCommand}" Margin="12,0,0,0" />
+                </Grid>
+            </Border>
+        </StackPanel>
     </DockPanel>
 </UserControl>
