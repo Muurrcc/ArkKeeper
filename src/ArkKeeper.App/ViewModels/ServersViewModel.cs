@@ -65,10 +65,13 @@ public sealed partial class ServersViewModel : ViewModelBase
     }
 
     /// <summary>Runs each server's due scheduled tasks (a no-op per row while it isn't running).
-    /// Called on the same poll timer as <see cref="RefreshAll"/>.</summary>
+    /// Called on the same poll timer as <see cref="RefreshAll"/>. Iterates a snapshot, not
+    /// <see cref="Servers"/> directly — each iteration awaits real RCON I/O, which yields back to
+    /// the UI dispatcher, and a Delete click landing on any row during that yield would mutate
+    /// Servers out from under a live enumerator ("Collection was modified").</summary>
     public async Task RunDueScheduledTasksForAllAsync()
     {
-        foreach (var server in Servers)
+        foreach (var server in Servers.ToArray())
         {
             await server.RunDueScheduledTasksAsync();
         }
