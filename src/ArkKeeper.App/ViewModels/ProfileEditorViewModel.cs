@@ -47,12 +47,12 @@ public partial class ProfileEditorViewModel : ViewModelBase
         "Extinction", "Valguero_P", "Genesis", "CrystalIsles", "Genesis2", "LostIsland", "Fjordur",
     ];
 
-    /// <summary>Reveals the ~200 less-common settings (structures, dinos/taming, PvP, chat,
-    /// engrams/crafting, world/environment, player stats, and raw override lists) behind an
-    /// opt-in toggle rather than always showing all 226 of ServerProfile's settings — most users
-    /// only ever touch the curated sections above this.</summary>
+    /// <summary>Toggles the ~200 less-common settings (structures, dinos/taming, PvP, chat,
+    /// engrams/crafting, world/environment, player stats, and raw override lists). Defaults to
+    /// shown — the checkbox stays available for anyone who wants to collapse back down to just
+    /// the curated sections above it.</summary>
     [ObservableProperty]
-    public partial bool ShowAdvancedConfig { get; set; }
+    public partial bool ShowAdvancedConfig { get; set; } = true;
 
     [ObservableProperty]
     public partial string? ErrorMessage { get; set; }
