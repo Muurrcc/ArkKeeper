@@ -27,7 +27,8 @@
                     <Border Classes="Card" Margin="0,0,0,12">
                         <StackPanel Spacing="14">
                             <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto">
-                                <Border Grid.Column="0" Classes="IconCircle" Width="34" Height="34" Margin="0,0,14,0">
+                                <Border Grid.Column="0" Classes="IconCircle" Classes.Live="{Binding IsRunning}"
+                                        Width="34" Height="34" Margin="0,0,14,0">
                                     <Border.Background>
                                         <SolidColorBrush Color="{Binding IsRunning, Converter={x:Static conv:RunningColorConverter.Instance}}" />
                                     </Border.Background>
@@ -54,38 +55,57 @@
                                 </Border>
                             </Grid>
 
-                            <WrapPanel Orientation="Horizontal">
-                                <WrapPanel.Styles>
-                                    <Style Selector="Button">
-                                        <Setter Property="Margin" Value="0,0,8,8" />
-                                        <Setter Property="CornerRadius" Value="10" />
-                                    </Style>
-                                </WrapPanel.Styles>
-                                <Button Content="Start" Command="{Binding StartCommand}" />
-                                <Button Content="Stop" Command="{Binding StopCommand}" />
-                                <Button Content="Kill" Command="{Binding KillCommand}" />
-                                <Button Content="Console"
-                                        Command="{Binding #Root.((vm:ServersViewModel)DataContext).ConsoleCommand}"
-                                        CommandParameter="{Binding}" />
-                                <Button Content="Players"
-                                        Command="{Binding #Root.((vm:ServersViewModel)DataContext).PlayersCommand}"
-                                        CommandParameter="{Binding}" />
-                                <Button Content="Backups"
-                                        Command="{Binding #Root.((vm:ServersViewModel)DataContext).BackupsCommand}"
-                                        CommandParameter="{Binding}" />
-                                <Button Content="Scheduler"
-                                        Command="{Binding #Root.((vm:ServersViewModel)DataContext).SchedulerCommand}"
-                                        CommandParameter="{Binding}" />
-                                <Button Content="Mods"
-                                        Command="{Binding #Root.((vm:ServersViewModel)DataContext).ModsCommand}"
-                                        CommandParameter="{Binding}" />
-                                <Button Content="Edit"
-                                        Command="{Binding #Root.((vm:ServersViewModel)DataContext).EditCommand}"
-                                        CommandParameter="{Binding}" />
-                                <Button Content="Delete"
-                                        Command="{Binding #Root.((vm:ServersViewModel)DataContext).DeleteCommand}"
-                                        CommandParameter="{Binding}" />
-                            </WrapPanel>
+                            <StackPanel Spacing="8">
+                                <!-- Power controls, left, and profile actions, right — kept apart
+                                     from the feature-page buttons below so Start/Stop/Kill and
+                                     Edit/Delete (the ones with real consequences) aren't lost in
+                                     one long row of equally-weighted buttons. -->
+                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                                        <StackPanel.Styles>
+                                            <Style Selector="Button"><Setter Property="CornerRadius" Value="10" /></Style>
+                                        </StackPanel.Styles>
+                                        <Button Content="Start" Classes="accent" Command="{Binding StartCommand}" />
+                                        <Button Content="Stop" Command="{Binding StopCommand}" />
+                                        <Button Content="Kill" Classes="Danger" Command="{Binding KillCommand}" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                                        <StackPanel.Styles>
+                                            <Style Selector="Button"><Setter Property="CornerRadius" Value="10" /></Style>
+                                        </StackPanel.Styles>
+                                        <Button Content="Edit"
+                                                Command="{Binding #Root.((vm:ServersViewModel)DataContext).EditCommand}"
+                                                CommandParameter="{Binding}" />
+                                        <Button Content="Delete" Classes="Danger"
+                                                Command="{Binding #Root.((vm:ServersViewModel)DataContext).DeleteCommand}"
+                                                CommandParameter="{Binding}" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <WrapPanel Orientation="Horizontal">
+                                    <WrapPanel.Styles>
+                                        <Style Selector="Button">
+                                            <Setter Property="Margin" Value="0,0,8,8" />
+                                            <Setter Property="CornerRadius" Value="10" />
+                                        </Style>
+                                    </WrapPanel.Styles>
+                                    <Button Content="Console"
+                                            Command="{Binding #Root.((vm:ServersViewModel)DataContext).ConsoleCommand}"
+                                            CommandParameter="{Binding}" />
+                                    <Button Content="Players"
+                                            Command="{Binding #Root.((vm:ServersViewModel)DataContext).PlayersCommand}"
+                                            CommandParameter="{Binding}" />
+                                    <Button Content="Backups"
+                                            Command="{Binding #Root.((vm:ServersViewModel)DataContext).BackupsCommand}"
+                                            CommandParameter="{Binding}" />
+                                    <Button Content="Scheduler"
+                                            Command="{Binding #Root.((vm:ServersViewModel)DataContext).SchedulerCommand}"
+                                            CommandParameter="{Binding}" />
+                                    <Button Content="Mods"
+                                            Command="{Binding #Root.((vm:ServersViewModel)DataContext).ModsCommand}"
+                                            CommandParameter="{Binding}" />
+                                </WrapPanel>
+                            </StackPanel>
 
                             <TextBlock Text="{Binding ErrorMessage}"
                                        IsVisible="{Binding ErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}"

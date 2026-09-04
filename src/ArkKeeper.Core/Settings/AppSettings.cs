@@ -22,7 +22,7 @@ public sealed class AppSettings
     /// pointed at a manifest the user controls.</summary>
     public string? UpdateManifestUrl { get; set; }
 
-    public bool DarkTheme { get; set; } = true;
+    public AppThemeKind ThemeKind { get; set; } = AppThemeKind.Navy;
 
     public string AccentColorHex { get; set; } = "#0FC2C0";
 }

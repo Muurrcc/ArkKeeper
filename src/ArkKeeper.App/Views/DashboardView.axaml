@@ -16,7 +16,7 @@
                 <TextBlock Text="RUNNING NOW" Opacity="0.55" FontSize="12" FontWeight="SemiBold"
                            HorizontalAlignment="Center" />
                 <StackPanel Orientation="Horizontal" Spacing="14" HorizontalAlignment="Center">
-                    <Border Classes="IconCircle" Width="44" Height="44"
+                    <Border Classes="IconCircle" Classes.Live="{Binding IsAnyRunning}" Width="44" Height="44"
                             Background="{DynamicResource SystemFillColorSuccessBrush}">
                         <TextBlock Text="▶" FontSize="18" FontWeight="Bold"
                                    HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -57,7 +57,8 @@
                         <DataTemplate x:DataType="vm:ServerRowViewModel">
                             <Border Classes="Card" Margin="0,0,0,10">
                                 <Grid ColumnDefinitions="Auto,*,Auto">
-                                    <Border Grid.Column="0" Classes="IconCircle" Width="36" Height="36" Margin="0,0,14,0">
+                                    <Border Grid.Column="0" Classes="IconCircle" Classes.Live="{Binding IsRunning}"
+                                            Width="36" Height="36" Margin="0,0,14,0">
                                         <Border.Background>
                                             <SolidColorBrush Color="{Binding IsRunning, Converter={x:Static conv:RunningColorConverter.Instance}}" />
                                         </Border.Background>

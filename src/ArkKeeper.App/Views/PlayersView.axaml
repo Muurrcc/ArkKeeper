@@ -17,7 +17,7 @@
                 <TextBlock FontSize="24" FontWeight="SemiBold" Text="Players &amp; tribes" />
                 <TextBlock Text="{Binding Profile.ProfileName}" Opacity="0.7" />
             </StackPanel>
-            <Button Grid.Column="1" Content="Close" Command="{Binding CloseCommand}" />
+            <Button Grid.Column="1" Classes="Pill" Content="Close" Command="{Binding CloseCommand}" />
         </Grid>
 
         <TextBlock DockPanel.Dock="Top"
@@ -32,14 +32,13 @@
                 <StackPanel Spacing="8">
                     <Grid ColumnDefinitions="*,Auto">
                         <TextBlock Grid.Column="0" Text="Connected players" FontSize="16" FontWeight="SemiBold" />
-                        <Button Grid.Column="1" Content="Refresh" Command="{Binding RefreshConnectedCommand}" />
+                        <Button Grid.Column="1" Classes="Pill" Content="Refresh" Command="{Binding RefreshConnectedCommand}" />
                     </Grid>
 
                     <ItemsControl ItemsSource="{Binding ConnectedPlayers}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="players:ConnectedPlayer">
-                                <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                                        CornerRadius="6" Padding="12" Margin="0,0,0,8">
+                                <Border Classes="Card" Margin="0,0,0,10">
                                     <Grid ColumnDefinitions="*,Auto,Auto">
                                         <StackPanel Grid.Column="0" Spacing="2">
                                             <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
@@ -60,7 +59,7 @@
                     <Grid ColumnDefinitions="*,Auto">
                         <TextBox Grid.Column="0" Text="{Binding UnbanSteamId}"
                                   PlaceholderText="SteamID to unban" />
-                        <Button Grid.Column="1" Content="Unban" Margin="8,0,0,0"
+                        <Button Grid.Column="1" Classes="Pill" Content="Unban" Margin="8,0,0,0"
                                 Command="{Binding UnbanCommand}" />
                     </Grid>
                 </StackPanel>
@@ -68,7 +67,7 @@
                 <StackPanel Spacing="8">
                     <Grid ColumnDefinitions="*,Auto">
                         <TextBlock Grid.Column="0" Text="Known players (from save files)" FontSize="16" FontWeight="SemiBold" />
-                        <Button Grid.Column="1" Content="Reload" Command="{Binding ReloadKnownCommand}" />
+                        <Button Grid.Column="1" Classes="Pill" Content="Reload" Command="{Binding ReloadKnownCommand}" />
                     </Grid>
 
                     <TextBlock Text="No player save files found — the profile's install directory may not be set, or the server hasn't run yet."
@@ -77,8 +76,7 @@
                     <ItemsControl ItemsSource="{Binding KnownPlayers}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="saves:PlayerInfo">
-                                <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                                        CornerRadius="6" Padding="12" Margin="0,0,0,8">
+                                <Border Classes="Card" Margin="0,0,0,10">
                                     <Grid ColumnDefinitions="*,Auto">
                                         <StackPanel Grid.Column="0" Spacing="2">
                                             <TextBlock Text="{Binding CharacterName}" FontWeight="SemiBold" />
@@ -103,8 +101,7 @@
                     <ItemsControl ItemsSource="{Binding Tribes}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="saves:TribeInfo">
-                                <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                                        CornerRadius="6" Padding="12" Margin="0,0,0,8">
+                                <Border Classes="Card" Margin="0,0,0,10">
                                     <StackPanel Orientation="Horizontal" Spacing="12">
                                         <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
                                         <TextBlock Text="{Binding Id}" Opacity="0.6" FontSize="12" />

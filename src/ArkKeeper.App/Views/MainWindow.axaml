@@ -20,24 +20,44 @@
         <vm:MainViewModel />
     </Design.DataContext>
 
-    <ui:FANavigationView x:Name="NavView"
-                          PaneDisplayMode="Left"
-                          IsSettingsVisible="True"
-                          OpenPaneLength="220"
-                          SelectionChanged="OnNavSelectionChanged">
-        <ui:FANavigationView.MenuItems>
-            <ui:FANavigationViewItem Content="Dashboard" Tag="{Binding DashboardPage}" IsSelected="True">
-                <ui:FANavigationViewItem.IconSource>
-                    <ui:FASymbolIconSource Symbol="Home" />
-                </ui:FANavigationViewItem.IconSource>
-            </ui:FANavigationViewItem>
-            <ui:FANavigationViewItem Content="Servers" Tag="{Binding ServersPage}">
-                <ui:FANavigationViewItem.IconSource>
-                    <ui:FASymbolIconSource Symbol="List" />
-                </ui:FANavigationViewItem.IconSource>
-            </ui:FANavigationViewItem>
-        </ui:FANavigationView.MenuItems>
+    <Grid>
+        <ui:FANavigationView Grid.Row="0"
+                              x:Name="NavView"
+                              Background="Transparent"
+                              PaneDisplayMode="Left"
+                              IsSettingsVisible="True"
+                              OpenPaneLength="220"
+                              SelectionChanged="OnNavSelectionChanged">
+            <ui:FANavigationView.MenuItems>
+                <ui:FANavigationViewItem Content="Dashboard" Tag="{Binding DashboardPage}" IsSelected="True">
+                    <ui:FANavigationViewItem.IconSource>
+                        <ui:FASymbolIconSource Symbol="Home" />
+                    </ui:FANavigationViewItem.IconSource>
+                </ui:FANavigationViewItem>
+                <ui:FANavigationViewItem Content="Servers" Tag="{Binding ServersPage}">
+                    <ui:FANavigationViewItem.IconSource>
+                        <ui:FASymbolIconSource Symbol="List" />
+                    </ui:FANavigationViewItem.IconSource>
+                </ui:FANavigationViewItem>
+            </ui:FANavigationView.MenuItems>
 
-        <ContentControl Content="{Binding SelectedPage}" Margin="8" />
-    </ui:FANavigationView>
+            <TransitioningContentControl Content="{Binding SelectedPage}" Margin="8">
+                <TransitioningContentControl.PageTransition>
+                    <CrossFade Duration="0:0:0.18" />
+                </TransitioningContentControl.PageTransition>
+            </TransitioningContentControl>
+        </ui:FANavigationView>
+
+        <!-- ExtendClientAreaToDecorationsHint removes the OS title bar but does NOT make any
+             region draggable on its own — without this strip calling BeginMoveDrag, the window
+             could not be moved at all. Declared after (so drawn on top of) FANavigationView,
+             which otherwise fully occludes it — a Border placed underneath a control spanning the
+             same area never receives pointer events, which is why an earlier version of this
+             fix silently did nothing. Left margin clears the nav pane's own header (hamburger +
+             "ArkKeeper" title, at OpenPaneLength=220); right margin clears the system min/max/close
+             buttons Windows still draws in the corner. No content of its own — just a drag handle
+             over what's blank space above the page content. -->
+        <Border Height="40" VerticalAlignment="Top" Background="Transparent"
+                Margin="228,0,140,0" PointerPressed="OnTitleBarPointerPressed" />
+    </Grid>
 </Window>

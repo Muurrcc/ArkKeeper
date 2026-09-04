@@ -20,11 +20,23 @@
                        IsVisible="{Binding StatusMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}"
                        Foreground="{DynamicResource SystemFillColorSuccessBrush}" TextWrapping="Wrap" />
 
+            <Border Classes="Card">
             <StackPanel Spacing="8">
                 <TextBlock Text="Appearance" FontWeight="SemiBold" />
-                <ToggleSwitch Content="Dark theme" IsChecked="{Binding IsDarkTheme}" />
+                <TextBlock Text="Theme" Opacity="0.8" FontSize="12" />
+                <ComboBox ItemsSource="{Binding ThemeKinds}" SelectedItem="{Binding ThemeKind}"
+                          AutomationProperties.AutomationId="ThemeComboBox"
+                          HorizontalAlignment="Left" MinWidth="180">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Converter={x:Static conv:ThemeKindDisplayConverter.Instance}}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
             </StackPanel>
+            </Border>
 
+            <Border Classes="Card">
             <StackPanel Spacing="8">
                 <TextBlock Text="Accent color" FontWeight="SemiBold" />
                 <ItemsControl ItemsSource="{Binding AccentSwatches}">
@@ -35,7 +47,7 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="services:AccentSwatch">
-                            <Button Width="32" Height="32" CornerRadius="16" Padding="0"
+                            <Button Width="32" Height="32" CornerRadius="10" Padding="0"
                                     Background="{Binding Brush}" ToolTip.Tip="{Binding Name}"
                                     Command="{Binding $parent[ItemsControl].DataContext.ApplyAccentCommand}"
                                     CommandParameter="{Binding}" />
@@ -43,35 +55,41 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </StackPanel>
+            </Border>
 
+            <Border Classes="Card">
             <StackPanel Spacing="8">
                 <TextBlock Text="Installs" FontWeight="SemiBold" />
                 <TextBlock Text="Default install directory" Opacity="0.8" FontSize="12" />
                 <Grid ColumnDefinitions="*,Auto">
                     <TextBox Grid.Column="0" Text="{Binding DefaultInstallDirectory}"
                               PlaceholderText="Used to pre-fill new profiles" />
-                    <Button Grid.Column="1" Content="Browse..." Margin="8,0,0,0"
+                    <Button Grid.Column="1" Classes="Pill" Content="Browse..." Margin="8,0,0,0"
                             Click="OnBrowseDefaultInstallDirectoryClick" />
                 </Grid>
                 <TextBlock Text="SteamCMD directory" Opacity="0.8" FontSize="12" Margin="0,8,0,0" />
                 <Grid ColumnDefinitions="*,Auto">
                     <TextBox Grid.Column="0" Text="{Binding SteamCmdDirectory}"
                               PlaceholderText="Where steamcmd.exe is (or will be) installed" />
-                    <Button Grid.Column="1" Content="Browse..." Margin="8,0,0,0"
+                    <Button Grid.Column="1" Classes="Pill" Content="Browse..." Margin="8,0,0,0"
                             Click="OnBrowseSteamCmdDirectoryClick" />
                 </Grid>
             </StackPanel>
+            </Border>
 
+            <Border Classes="Card">
             <StackPanel Spacing="8">
                 <TextBlock Text="Discord notifications" FontWeight="SemiBold" />
                 <TextBlock Text="Webhook URL" Opacity="0.8" FontSize="12" />
                 <TextBox Text="{Binding DiscordWebhookUrl}"
                           PlaceholderText="https://discord.com/api/webhooks/..." />
                 <StackPanel Orientation="Horizontal" Spacing="8">
-                    <Button Content="Send test message" Command="{Binding SendTestDiscordMessageCommand}" />
+                    <Button Classes="Pill" Content="Send test message" Command="{Binding SendTestDiscordMessageCommand}" />
                 </StackPanel>
             </StackPanel>
+            </Border>
 
+            <Border Classes="Card">
             <StackPanel Spacing="8">
                 <TextBlock Text="Updates" FontWeight="SemiBold" />
                 <TextBlock Opacity="0.6" FontSize="12">
@@ -89,12 +107,13 @@
                            Foreground="{DynamicResource SystemFillColorSuccessBrush}" TextWrapping="Wrap" />
 
                 <StackPanel Orientation="Horizontal" Spacing="8">
-                    <Button Content="Check for updates" Command="{Binding CheckForUpdatesCommand}" />
-                    <Button Content="Download update" Command="{Binding DownloadUpdateCommand}" />
+                    <Button Classes="Pill" Content="Check for updates" Command="{Binding CheckForUpdatesCommand}" />
+                    <Button Classes="Pill" Content="Download update" Command="{Binding DownloadUpdateCommand}" />
                 </StackPanel>
             </StackPanel>
+            </Border>
 
-            <Button Content="Save settings" Command="{Binding SaveCommand}" HorizontalAlignment="Left" />
+            <Button Classes="Pill accent" Content="Save settings" Command="{Binding SaveCommand}" HorizontalAlignment="Left" />
         </StackPanel>
     </ScrollViewer>
 </UserControl>

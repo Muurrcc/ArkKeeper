@@ -25,8 +25,10 @@ public partial class SettingsViewModel : ViewModelBase
 
     public IReadOnlyList<AccentSwatch> AccentSwatches => AccentSwatch.Presets;
 
+    public IReadOnlyList<AppThemeKind> ThemeKinds { get; } = Enum.GetValues<AppThemeKind>();
+
     [ObservableProperty]
-    public partial bool IsDarkTheme { get; set; } = true;
+    public partial AppThemeKind ThemeKind { get; set; } = AppThemeKind.Navy;
 
     [ObservableProperty]
     public partial string DefaultInstallDirectory { get; set; } = string.Empty;
@@ -66,22 +68,22 @@ public partial class SettingsViewModel : ViewModelBase
     {
         _settings = await _store.LoadAsync();
 
-        IsDarkTheme = _settings.DarkTheme;
+        ThemeKind = _settings.ThemeKind;
         DefaultInstallDirectory = _settings.DefaultInstallDirectory;
         SteamCmdDirectory = _settings.SteamCmdDirectory;
         DiscordWebhookUrl = _settings.DiscordWebhookUrl ?? string.Empty;
         UpdateManifestUrl = _settings.UpdateManifestUrl ?? string.Empty;
 
-        ThemeService.SetDark(IsDarkTheme);
+        ThemeService.SetThemeKind(ThemeKind);
         if (Avalonia.Media.Color.TryParse(_settings.AccentColorHex, out var color))
         {
             ThemeService.SetAccentColor(color);
         }
     }
 
-    partial void OnIsDarkThemeChanged(bool value)
+    partial void OnThemeKindChanged(AppThemeKind value)
     {
-        ThemeService.SetDark(value);
+        ThemeService.SetThemeKind(value);
         _ = SaveAsync();
     }
 
@@ -96,7 +98,7 @@ public partial class SettingsViewModel : ViewModelBase
     [RelayCommand]
     private Task SaveAsync()
     {
-        _settings.DarkTheme = IsDarkTheme;
+        _settings.ThemeKind = ThemeKind;
         _settings.DefaultInstallDirectory = DefaultInstallDirectory;
         _settings.SteamCmdDirectory = SteamCmdDirectory;
         _settings.DiscordWebhookUrl = string.IsNullOrWhiteSpace(DiscordWebhookUrl) ? null : DiscordWebhookUrl;

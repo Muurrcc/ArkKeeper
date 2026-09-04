@@ -10,6 +10,18 @@
         <Setter Property="CornerRadius" Value="18" />
         <Setter Property="Padding" Value="16" />
         <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
+        <Setter Property="RenderTransform" Value="scale(1)" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" Easing="CubicEaseOut" />
+                <BrushTransition Property="Background" Duration="0:0:0.15" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <!-- A light "lift" on hover — makes rows/cards feel touchable instead of static, without
+         being distracting at rest. -->
+    <Style Selector="Border.Card:pointerover">
+        <Setter Property="RenderTransform" Value="scale(1.012)" />
     </Style>
 
     <Style Selector="Border.Pill">
@@ -40,6 +52,49 @@
     <Style Selector="Button.Pill">
         <Setter Property="CornerRadius" Value="12" />
         <Setter Property="Padding" Value="16,10" />
+        <Setter Property="RenderTransform" Value="scale(1)" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.12" Easing="CubicEaseOut" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Button.Pill:pointerover">
+        <Setter Property="RenderTransform" Value="scale(1.03)" />
+    </Style>
+    <Style Selector="Button.Pill:pressed">
+        <Setter Property="RenderTransform" Value="scale(0.97)" />
+    </Style>
+
+    <!-- A slow "breathing" opacity pulse for anything actively live right now (a running
+         server's status dot, the dashboard's RUNNING NOW icon) — the one place in the app that
+         should visibly feel alive rather than static, since everything else here is at rest. -->
+    <Style Selector="Border.Live">
+        <Style.Animations>
+            <Animation Duration="0:0:1.8" IterationCount="INFINITE" Easing="SineEaseInOut">
+                <KeyFrame Cue="0%">
+                    <Setter Property="Opacity" Value="1.0" />
+                </KeyFrame>
+                <KeyFrame Cue="50%">
+                    <Setter Property="Opacity" Value="0.6" />
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                    <Setter Property="Opacity" Value="1.0" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- Destructive actions (Kill, Delete) — same rounded-pill shape as everything else, just
+         tinted so they read as a different kind of action at a glance. A literal translucent red
+         rather than a theme resource key, so it looks right in every theme without depending on
+         a specific brush existing in FluentAvalonia's resource set. -->
+    <Style Selector="Button.Danger">
+        <Setter Property="Background" Value="#26E81123" />
+        <Setter Property="Foreground" Value="#E81123" />
+    </Style>
+    <Style Selector="Button.Danger:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#40E81123" />
     </Style>
 
 </Styles>

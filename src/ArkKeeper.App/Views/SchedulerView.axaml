@@ -15,7 +15,7 @@
                 <TextBlock FontSize="24" FontWeight="SemiBold" Text="Scheduled tasks" />
                 <TextBlock Text="{Binding Profile.ProfileName}" Opacity="0.7" />
             </StackPanel>
-            <Button Grid.Column="1" Content="Close" Command="{Binding CloseCommand}" />
+            <Button Grid.Column="1" Classes="Pill" Content="Close" Command="{Binding CloseCommand}" />
         </Grid>
 
         <TextBlock DockPanel.Dock="Top"
@@ -24,8 +24,7 @@
                    Foreground="{DynamicResource SystemFillColorCriticalBrush}"
                    Margin="0,0,0,12" TextWrapping="Wrap" />
 
-        <Border DockPanel.Dock="Top" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                CornerRadius="8" Padding="16" Margin="0,0,0,16">
+        <Border DockPanel.Dock="Top" Classes="Card" Margin="0,0,0,16">
             <StackPanel Spacing="10">
                 <TextBlock Text="Add a scheduled task" FontWeight="SemiBold" />
                 <Grid ColumnDefinitions="*,*" >
@@ -37,7 +36,7 @@
                     <TextBox Grid.Column="1" Text="{Binding NewTaskValueText}"
                               PlaceholderText="Interval: hours (e.g. 6) - Daily at: HH:mm" />
                 </Grid>
-                <Button Content="Add task" Command="{Binding AddCommand}" HorizontalAlignment="Left" />
+                <Button Classes="Pill accent" Content="Add task" Command="{Binding AddCommand}" HorizontalAlignment="Left" />
             </StackPanel>
         </Border>
 
@@ -49,8 +48,7 @@
                 <ItemsControl ItemsSource="{Binding Tasks}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:ScheduleRowViewModel">
-                            <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                                    CornerRadius="6" Padding="12" Margin="0,0,0,8">
+                            <Border Classes="Card" Margin="0,0,0,10">
                                 <Grid ColumnDefinitions="*,Auto">
                                     <StackPanel Grid.Column="0" Spacing="2">
                                         <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
@@ -60,7 +58,7 @@
                                             <Run Text="  ·  Last: " /><Run Text="{Binding LastRunDisplay}" />
                                         </TextBlock>
                                     </StackPanel>
-                                    <Button Grid.Column="1" Content="Remove"
+                                    <Button Grid.Column="1" Classes="Pill" Content="Remove"
                                             Command="{Binding #Root.((vm:SchedulerViewModel)DataContext).RemoveCommand}"
                                             CommandParameter="{Binding}" />
                                 </Grid>

@@ -18,7 +18,7 @@ public class AppSettingsStoreTests : IDisposable
         var settings = await store.LoadAsync();
 
         Assert.Equal(string.Empty, settings.DefaultInstallDirectory);
-        Assert.True(settings.DarkTheme);
+        Assert.Equal(AppThemeKind.Navy, settings.ThemeKind);
     }
 
     [Fact]
@@ -30,7 +30,7 @@ public class AppSettingsStoreTests : IDisposable
             DefaultInstallDirectory = @"C:\Servers",
             SteamCmdDirectory = @"C:\SteamCmd",
             DiscordWebhookUrl = "https://discord.com/api/webhooks/1/a",
-            DarkTheme = false,
+            ThemeKind = AppThemeKind.OledBlack,
             AccentColorHex = "#FF00FF",
         };
 
