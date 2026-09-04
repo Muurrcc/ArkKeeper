@@ -1,3 +1,4 @@
+using ArkKeeper.App.Services;
 using ArkKeeper.Core.Players;
 using ArkKeeper.Core.Profiles;
 using ArkKeeper.Core.Scheduling;
@@ -13,13 +14,19 @@ namespace ArkKeeper.App.ViewModels;
 /// <see cref="ManagedServer"/> exposes <c>Status</c> as a plain property, not a change event.</summary>
 public partial class ServerRowViewModel : ViewModelBase
 {
+    /// <summary>1 minute of history at the app's 2s poll interval — long enough for a sparkline
+    /// trend to read as a trend, short enough to stay a "right now" view, not a history log.</summary>
+    private const int ResourceHistoryLength = 30;
+
     private readonly ManagedServer _server;
     private readonly SchedulerStore _schedulerStore;
+    private readonly ActivityLog _activityLog;
     private bool _schedulerLoaded;
 
-    public ServerRowViewModel(ManagedServer server)
+    public ServerRowViewModel(ManagedServer server, ActivityLog activityLog)
     {
         _server = server;
+        _activityLog = activityLog;
         Status = _server.Status;
 
         var filePath = Path.Combine(
@@ -47,7 +54,50 @@ public partial class ServerRowViewModel : ViewModelBase
 
     public bool IsRunning => Status == ServerStatus.Running;
 
+    [ObservableProperty]
+    public partial double CpuPercent { get; set; }
+
+    [ObservableProperty]
+    public partial double RamGigabytes { get; set; }
+
+    /// <summary>Rolling window of recent CPU% samples — oldest first, so it plots left-to-right as
+    /// a normal time-series chart. Cleared whenever the server isn't running, so a stopped
+    /// server's card doesn't keep showing a frozen trend from before it stopped.</summary>
+    public Queue<double> CpuHistory { get; } = new();
+
+    public Queue<double> RamHistory { get; } = new();
+
     public void Refresh() => Status = _server.Status;
+
+    /// <summary>Samples this server's real CPU/RAM usage and appends to its rolling history — a
+    /// no-op (and clears history) when it isn't running. Called from the same poll tick as
+    /// <see cref="Refresh"/>.</summary>
+    public void SampleResourceUsage()
+    {
+        var sample = _server.SampleResourceUsage();
+        if (sample is not { } value)
+        {
+            CpuPercent = 0;
+            RamGigabytes = 0;
+            CpuHistory.Clear();
+            RamHistory.Clear();
+            return;
+        }
+
+        CpuPercent = value.CpuPercent;
+        RamGigabytes = value.WorkingSetGigabytes;
+
+        CpuHistory.Enqueue(value.CpuPercent);
+        RamHistory.Enqueue(value.WorkingSetGigabytes);
+        while (CpuHistory.Count > ResourceHistoryLength)
+        {
+            CpuHistory.Dequeue();
+        }
+        while (RamHistory.Count > ResourceHistoryLength)
+        {
+            RamHistory.Dequeue();
+        }
+    }
 
     /// <summary>Exposes RCON without leaking <see cref="ManagedServer"/> itself to the UI layer
     /// — used by <see cref="RconConsoleViewModel"/>.</summary>
@@ -111,6 +161,7 @@ public partial class ServerRowViewModel : ViewModelBase
         try
         {
             _server.Start();
+            _activityLog.Add($"{Profile.ProfileName} started", ActivityKind.Server);
         }
         catch (Exception ex)
         {
@@ -129,6 +180,7 @@ public partial class ServerRowViewModel : ViewModelBase
         try
         {
             await _server.StopAsync(TimeSpan.FromSeconds(30));
+            _activityLog.Add($"{Profile.ProfileName} stopped", ActivityKind.Server);
         }
         catch (Exception ex)
         {
@@ -145,6 +197,7 @@ public partial class ServerRowViewModel : ViewModelBase
         try
         {
             _server.Kill();
+            _activityLog.Add($"{Profile.ProfileName} killed", ActivityKind.Server);
         }
         catch (Exception ex)
         {

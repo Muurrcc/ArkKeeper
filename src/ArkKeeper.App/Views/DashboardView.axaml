@@ -4,78 +4,147 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:ArkKeeper.App.ViewModels"
              xmlns:conv="using:ArkKeeper.App.Converters"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:services="using:ArkKeeper.App.Services"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="700"
              x:Class="ArkKeeper.App.Views.DashboardView"
              x:DataType="vm:DashboardViewModel">
 
     <ScrollViewer>
-        <StackPanel Margin="24" Spacing="24">
+        <StackPanel Margin="24" Spacing="20" MaxWidth="820">
             <TextBlock Text="Dashboard" FontSize="24" FontWeight="SemiBold" />
 
-            <StackPanel HorizontalAlignment="Center" Spacing="10">
-                <TextBlock Text="RUNNING NOW" Opacity="0.55" FontSize="12" FontWeight="SemiBold"
-                           HorizontalAlignment="Center" />
-                <StackPanel Orientation="Horizontal" Spacing="14" HorizontalAlignment="Center">
-                    <Border Classes="IconCircle" Classes.Live="{Binding IsAnyRunning}" Width="44" Height="44"
-                            Background="{DynamicResource SystemFillColorSuccessBrush}">
-                        <TextBlock Text="▶" FontSize="18" FontWeight="Bold"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <TextBlock Classes="BigNumber" Text="{Binding RunningCount}" VerticalAlignment="Center" />
-                </StackPanel>
-            </StackPanel>
-
-            <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center">
-                <Border Classes="Pill" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <Border Classes="IconCircle" Width="26" Height="26" Background="{DynamicResource SystemFillColorAttentionBrush}">
-                            <TextBlock Text="🖥" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                        <StackPanel>
-                            <TextBlock Classes="StatNumber" Text="{Binding ServerCount}" />
-                            <TextBlock Text="Profiles" Opacity="0.6" FontSize="11" />
+            <!-- Server health: a live trend, not just a snapshot — the two things that actually
+                 matter for "is my fleet okay right now". Summed across every running server. -->
+            <Grid ColumnDefinitions="*,*" >
+                <Border Grid.Column="0" Classes="Card" Margin="0,0,6,0">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Server health" Opacity="0.7" FontSize="12" FontWeight="SemiBold" />
+                        <Canvas Width="240" Height="48">
+                            <Polyline Points="{Binding CpuSparklinePoints}"
+                                      Stroke="{DynamicResource SystemFillColorAttentionBrush}"
+                                      StrokeThickness="2" StrokeJoin="Round" StrokeLineCap="Round" />
+                        </Canvas>
+                        <StackPanel Orientation="Horizontal" Spacing="4" Opacity="0.7">
+                            <TextBlock Text="CPU ·" FontSize="13" />
+                            <TextBlock Text="{Binding CpuPercentDisplay}" FontSize="13" FontWeight="SemiBold" />
+                            <TextBlock FontSize="13">
+                                <Run Text="% of " /><Run Text="{Binding ProcessorCount}" /><Run Text=" cores" />
+                            </TextBlock>
                         </StackPanel>
                     </StackPanel>
                 </Border>
-                <Border Classes="Pill" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <Border Classes="IconCircle" Width="26" Height="26" Background="{DynamicResource SystemFillColorCautionBrush}">
-                            <TextBlock Text="👥" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                        <StackPanel>
-                            <TextBlock Classes="StatNumber" Text="{Binding TotalCapacity}" />
-                            <TextBlock Text="Player slots" Opacity="0.6" FontSize="11" />
+                <Border Grid.Column="1" Classes="Card" Margin="6,0,0,0">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Server health" Opacity="0.7" FontSize="12" FontWeight="SemiBold" />
+                        <Canvas Width="240" Height="48">
+                            <Polyline Points="{Binding RamSparklinePoints}"
+                                      Stroke="{DynamicResource SystemFillColorSuccessBrush}"
+                                      StrokeThickness="2" StrokeJoin="Round" StrokeLineCap="Round" />
+                        </Canvas>
+                        <StackPanel Orientation="Horizontal" Spacing="4" Opacity="0.7">
+                            <TextBlock Text="RAM ·" FontSize="13" />
+                            <TextBlock Text="{Binding RamGigabytesDisplay}" FontSize="13" FontWeight="SemiBold" />
+                            <TextBlock Text="GB usage" FontSize="13" />
                         </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <StackPanel Spacing="12">
+                <TextBlock Text="Servers" FontSize="16" FontWeight="SemiBold" />
+                <TextBlock Text="No servers yet." Opacity="0.6" IsVisible="{Binding HasNoServers}" />
+                <ItemsControl ItemsSource="{Binding Servers}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ServerRowViewModel">
+                            <Border Classes="Card" Margin="0,0,0,10">
+                                <StackPanel Spacing="14">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <Border Grid.Column="0" Classes="IconCircle" Classes.Live="{Binding IsRunning}"
+                                                Width="36" Height="36" Margin="0,0,14,0">
+                                            <Border.Background>
+                                                <SolidColorBrush Color="{Binding IsRunning, Converter={x:Static conv:RunningColorConverter.Instance}}" />
+                                            </Border.Background>
+                                        </Border>
+                                        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Profile.ProfileName}" FontWeight="SemiBold" FontSize="15" />
+                                            <TextBlock Text="{Binding Profile.SessionName}" Opacity="0.6" FontSize="12" />
+                                        </StackPanel>
+                                        <Border Grid.Column="2" Classes="PillSmall" VerticalAlignment="Center"
+                                                Background="{DynamicResource SystemFillColorSuccessBrush}">
+                                            <TextBlock Text="{Binding Profile.PveMode, Converter={x:Static conv:PveBadgeConverter.Instance}}" FontSize="12" FontWeight="SemiBold" />
+                                        </Border>
+                                    </Grid>
+
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <Button Classes="Pill Success" Content="Start" Command="{Binding StartCommand}" />
+                                        <Button Classes="Pill" Content="Stop" Command="{Binding StopCommand}" />
+                                        <Button Classes="Pill Danger" Content="Kill" Command="{Binding KillCommand}" />
+                                    </StackPanel>
+
+                                    <Button Content="Start Server" Classes="Pill Success" IsVisible="{Binding !IsRunning}"
+                                            Command="{Binding StartCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+                                    <Button Content="Stop Server" Classes="Pill" IsVisible="{Binding IsRunning}"
+                                            Command="{Binding StopCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <StackPanel Spacing="12">
+                <TextBlock Text="Activity" FontSize="16" FontWeight="SemiBold" />
+                <Border Classes="Card">
+                    <StackPanel Spacing="0">
+                        <TextBlock Text="Nothing yet — start a server or take a backup to see it here."
+                                   Opacity="0.6" FontSize="12" IsVisible="{Binding HasNoActivity}" />
+                        <ItemsControl ItemsSource="{Binding Activity}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="services:ActivityEntry">
+                                    <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,12">
+                                        <Ellipse Grid.Column="0" Width="8" Height="8" Margin="0,0,12,0" VerticalAlignment="Center">
+                                            <Ellipse.Fill>
+                                                <SolidColorBrush Color="{Binding Kind, Converter={x:Static conv:ActivityKindColorConverter.Instance}}" />
+                                            </Ellipse.Fill>
+                                        </Ellipse>
+                                        <TextBlock Grid.Column="1" Text="{Binding Message}" FontSize="13" VerticalAlignment="Center" TextWrapping="Wrap" />
+                                        <TextBlock Grid.Column="2" Text="{Binding Timestamp, Converter={x:Static conv:RelativeTimeConverter.Instance}}"
+                                                   Opacity="0.5" FontSize="11" VerticalAlignment="Center" Margin="12,0,0,0" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </StackPanel>
                 </Border>
             </StackPanel>
 
             <StackPanel Spacing="12">
-                <TextBlock Text="Servers" FontSize="16" FontWeight="SemiBold" />
-                <ItemsControl ItemsSource="{Binding Servers}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="vm:ServerRowViewModel">
-                            <Border Classes="Card" Margin="0,0,0,10">
-                                <Grid ColumnDefinitions="Auto,*,Auto">
-                                    <Border Grid.Column="0" Classes="IconCircle" Classes.Live="{Binding IsRunning}"
-                                            Width="36" Height="36" Margin="0,0,14,0">
-                                        <Border.Background>
-                                            <SolidColorBrush Color="{Binding IsRunning, Converter={x:Static conv:RunningColorConverter.Instance}}" />
-                                        </Border.Background>
-                                    </Border>
-                                    <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding Profile.ProfileName}" FontWeight="SemiBold" FontSize="15" />
-                                        <TextBlock Text="{Binding Profile.SessionName}" Opacity="0.6" FontSize="12" />
-                                    </StackPanel>
-                                    <Border Grid.Column="2" Classes="PillSmall" VerticalAlignment="Center"
-                                            Background="{DynamicResource SystemFillColorSuccessBrush}">
-                                        <TextBlock Text="{Binding Profile.PveMode, Converter={x:Static conv:PveBadgeConverter.Instance}}" FontSize="12" FontWeight="SemiBold" />
-                                    </Border>
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                <TextBlock Text="Resource Metrics" FontSize="16" FontWeight="SemiBold" />
+                <Grid ColumnDefinitions="*,*">
+                    <Border Grid.Column="0" Classes="Card" Margin="0,0,6,0">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="CPU" Opacity="0.7" FontSize="12" FontWeight="SemiBold" />
+                            <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Bottom">
+                                <TextBlock Text="{Binding CpuPercentDisplay}" FontSize="20" FontWeight="Bold" />
+                                <TextBlock Text="%" FontSize="13" Margin="0,0,0,2" />
+                            </StackPanel>
+                            <ProgressBar Value="{Binding TotalCpuPercent}" Minimum="0" Maximum="100" Height="6" />
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Column="1" Classes="Card" Margin="6,0,0,0">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="RAM" Opacity="0.7" FontSize="12" FontWeight="SemiBold" />
+                            <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Bottom">
+                                <TextBlock Text="{Binding RamGigabytesDisplay}" FontSize="20" FontWeight="Bold" />
+                                <TextBlock Text="GB" FontSize="13" Margin="0,0,0,2" />
+                                <TextBlock FontSize="13" Margin="0,0,0,2">
+                                    <Run Text="/ " /><Run Text="{Binding TotalSystemRamGigabytesDisplay}" /><Run Text=" GB" />
+                                </TextBlock>
+                            </StackPanel>
+                            <ProgressBar Value="{Binding TotalRamGigabytes}" Minimum="0" Maximum="{Binding TotalSystemRamGigabytes}" Height="6" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
             </StackPanel>
         </StackPanel>
     </ScrollViewer>

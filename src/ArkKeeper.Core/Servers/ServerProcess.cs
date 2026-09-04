@@ -17,6 +17,8 @@ namespace ArkKeeper.Core.Servers;
 public sealed class ServerProcess : IDisposable
 {
     private Process? _process;
+    private DateTime? _lastCpuSampleAt;
+    private TimeSpan? _lastCpuSampleTotal;
 
     /// <summary>Set only by <see cref="ForProfile"/> — lets <see cref="Start"/> re-derive
     /// ExecutablePath/Arguments/Priority/CpuCoreLimit from the live profile every time instead of
@@ -141,6 +143,42 @@ public sealed class ServerProcess : IDisposable
         catch
         {
         }
+    }
+
+    /// <summary>Samples current CPU/RAM usage, or null if the process isn't running. CPU% is
+    /// derived from the delta in <see cref="Process.TotalProcessorTime"/> since the previous
+    /// call, divided by wall-clock elapsed time and core count — the same technique Task Manager
+    /// uses. The first call after a process starts (or after it wasn't running) has no previous
+    /// sample to diff against, so it always reports 0% CPU rather than a fabricated number; RAM is
+    /// accurate from the first call since it doesn't need a delta.</summary>
+    public ResourceUsageSample? SampleResourceUsage()
+    {
+        if (_process is not { HasExited: false } process)
+        {
+            _lastCpuSampleAt = null;
+            _lastCpuSampleTotal = null;
+            return null;
+        }
+
+        process.Refresh();
+        var now = DateTime.UtcNow;
+        var totalCpuTime = process.TotalProcessorTime;
+
+        var cpuPercent = 0.0;
+        if (_lastCpuSampleAt is { } lastAt && _lastCpuSampleTotal is { } lastTotal)
+        {
+            var elapsedWallMs = (now - lastAt).TotalMilliseconds;
+            var elapsedCpuMs = (totalCpuTime - lastTotal).TotalMilliseconds;
+            if (elapsedWallMs > 0)
+            {
+                cpuPercent = Math.Clamp(elapsedCpuMs / (elapsedWallMs * Environment.ProcessorCount) * 100.0, 0, 100);
+            }
+        }
+
+        _lastCpuSampleAt = now;
+        _lastCpuSampleTotal = totalCpuTime;
+
+        return new ResourceUsageSample(cpuPercent, process.WorkingSet64);
     }
 
     /// <summary>Terminates the process immediately. Prefer

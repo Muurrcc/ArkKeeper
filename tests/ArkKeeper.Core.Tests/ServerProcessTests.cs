@@ -79,6 +79,45 @@ public class ServerProcessTests
     }
 
     [Fact]
+    public void SampleResourceUsage_WhenNotRunning_ReturnsNull()
+    {
+        using var process = new ServerProcess(CmdExe, "/c ping -n 3 127.0.0.1 >nul");
+
+        Assert.Null(process.SampleResourceUsage());
+    }
+
+    [Fact]
+    public void SampleResourceUsage_WhenRunning_ReportsRealMemoryAndZeroCpuOnTheFirstSample()
+    {
+        // CPU% is derived from a delta against the previous sample — with no previous sample yet,
+        // it can only honestly report 0 rather than a fabricated number. RAM needs no delta, so
+        // it's accurate immediately.
+        using var process = new ServerProcess(CmdExe, "/c ping -n 5 127.0.0.1 >nul");
+        process.Start();
+
+        var sample = process.SampleResourceUsage();
+
+        Assert.NotNull(sample);
+        Assert.Equal(0, sample!.Value.CpuPercent);
+        Assert.True(sample.Value.WorkingSetBytes > 0);
+
+        process.Kill();
+    }
+
+    [Fact]
+    public async Task SampleResourceUsage_AfterProcessExits_ReturnsNullAgain()
+    {
+        using var process = new ServerProcess(CmdExe, "/c ping -n 5 127.0.0.1 >nul");
+        process.Start();
+        process.SampleResourceUsage();
+
+        process.Kill();
+        await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.Null(process.SampleResourceUsage());
+    }
+
+    [Fact]
     public async Task Kill_TerminatesRunningProcess()
     {
         using var process = new ServerProcess(CmdExe, "/c ping -n 30 127.0.0.1 >nul");

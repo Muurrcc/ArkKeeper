@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using ArkKeeper.App.Services;
 using ArkKeeper.Core.Profiles;
 using ArkKeeper.Core.Snapshots;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -14,11 +15,13 @@ public partial class BackupsViewModel : ViewModelBase
 {
     private readonly ServerRowViewModel _server;
     private readonly WorldBackupService _backupService;
+    private readonly ActivityLog _activityLog;
     private readonly Action _onClose;
 
-    public BackupsViewModel(ServerRowViewModel server, Action onClose)
+    public BackupsViewModel(ServerRowViewModel server, ActivityLog activityLog, Action onClose)
     {
         _server = server;
+        _activityLog = activityLog;
         _onClose = onClose;
 
         var backupRoot = System.IO.Path.Combine(
@@ -73,6 +76,7 @@ public partial class BackupsViewModel : ViewModelBase
 
             var path = _backupService.CreateBackup(Profile.GetSaveDirectory(), compress: CompressNewBackups);
             StatusMessage = $"Backup created: {System.IO.Path.GetFileName(path)}";
+            _activityLog.Add($"Backup completed for {Profile.ProfileName}", ActivityKind.Backup);
             LoadBackups();
         }
         catch (Exception ex)
@@ -102,6 +106,7 @@ public partial class BackupsViewModel : ViewModelBase
         {
             await Task.Run(() => _backupService.RestoreBackup(backup.Path, Profile.GetSaveDirectory()));
             StatusMessage = $"Restored {backup.Timestamp}.";
+            _activityLog.Add($"Backup restored for {Profile.ProfileName}", ActivityKind.Backup);
         }
         catch (Exception ex)
         {

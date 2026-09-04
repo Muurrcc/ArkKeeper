@@ -66,6 +66,8 @@ public sealed class ManagedServer : IAsyncDisposable
 
     public int? ProcessId => _process.ProcessId;
 
+    public ResourceUsageSample? SampleResourceUsage() => _process.SampleResourceUsage();
+
     /// <summary>Writes GameUserSettings.ini/Game.ini before launching — without this, none of
     /// ServerProfile's settings beyond the handful LaunchArgumentsBuilder puts on the command
     /// line (map, ports, session name, mods, ...) would ever actually reach the running server;

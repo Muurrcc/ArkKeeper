@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using ArkKeeper.App.Services;
 using ArkKeeper.Core.Profiles;
 using ArkKeeper.Orchestration;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -11,6 +12,7 @@ public sealed partial class ServersViewModel : ViewModelBase
 {
     private readonly ServerFleet _fleet;
     private readonly ProfileStore _profileStore;
+    private readonly ActivityLog _activityLog;
     private readonly ObservableCollection<ServerProfile> _profiles;
     private readonly Action<ServerProfile?> _openEditor;
     private readonly Action<ServerRowViewModel> _openConsole;
@@ -23,6 +25,7 @@ public sealed partial class ServersViewModel : ViewModelBase
         ObservableCollection<ServerProfile> profiles,
         ServerFleet fleet,
         ProfileStore profileStore,
+        ActivityLog activityLog,
         Action<ServerProfile?> openEditor,
         Action<ServerRowViewModel> openConsole,
         Action<ServerRowViewModel> openPlayers,
@@ -33,6 +36,7 @@ public sealed partial class ServersViewModel : ViewModelBase
         _profiles = profiles;
         _fleet = fleet;
         _profileStore = profileStore;
+        _activityLog = activityLog;
         _openEditor = openEditor;
         _openConsole = openConsole;
         _openPlayers = openPlayers;
@@ -61,6 +65,7 @@ public sealed partial class ServersViewModel : ViewModelBase
         foreach (var server in Servers)
         {
             server.Refresh();
+            server.SampleResourceUsage();
         }
     }
 
@@ -139,7 +144,7 @@ public sealed partial class ServersViewModel : ViewModelBase
 
     private void AddRow(ServerProfile profile)
     {
-        var row = new ServerRowViewModel(_fleet.GetOrAdd(profile));
+        var row = new ServerRowViewModel(_fleet.GetOrAdd(profile), _activityLog);
         Servers.Add(row);
         _ = row.EnsureSchedulerLoadedAsync();
     }

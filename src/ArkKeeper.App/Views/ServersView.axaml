@@ -65,7 +65,7 @@
                                         <StackPanel.Styles>
                                             <Style Selector="Button"><Setter Property="CornerRadius" Value="10" /></Style>
                                         </StackPanel.Styles>
-                                        <Button Content="Start" Classes="accent" Command="{Binding StartCommand}" />
+                                        <Button Content="Start" Classes="Success" Command="{Binding StartCommand}" />
                                         <Button Content="Stop" Command="{Binding StopCommand}" />
                                         <Button Content="Kill" Classes="Danger" Command="{Binding KillCommand}" />
                                     </StackPanel>

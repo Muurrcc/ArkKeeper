@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Net.Http;
+using ArkKeeper.App.Services;
 using ArkKeeper.Core.Profiles;
 using ArkKeeper.Core.Settings;
 using ArkKeeper.Discord;
@@ -32,8 +33,8 @@ public partial class MainViewModel : ViewModelBase
         _profileStore = profileStore;
         _fleet = fleet;
 
-        ServersPage = new ServersViewModel(Profiles, fleet, _profileStore, OpenEditor, OpenConsole, OpenPlayers, OpenBackups, OpenScheduler, OpenMods);
-        DashboardPage = new DashboardViewModel(ServersPage.Servers);
+        ServersPage = new ServersViewModel(Profiles, fleet, _profileStore, Activity, OpenEditor, OpenConsole, OpenPlayers, OpenBackups, OpenScheduler, OpenMods);
+        DashboardPage = new DashboardViewModel(ServersPage.Servers, Activity);
         SettingsPage = new SettingsViewModel(appSettingsStore);
 
         SelectedPage = DashboardPage;
@@ -65,6 +66,11 @@ public partial class MainViewModel : ViewModelBase
     }
 
     public ObservableCollection<ServerProfile> Profiles { get; } = new();
+
+    /// <summary>Shared across every page that can produce a real event (server start/stop,
+    /// backups) — owned here rather than per-page so the Dashboard's Activity card reflects
+    /// everything regardless of which page is actually open when it happens.</summary>
+    public ActivityLog Activity { get; } = new();
 
     public DashboardViewModel DashboardPage { get; }
 
@@ -111,7 +117,7 @@ public partial class MainViewModel : ViewModelBase
     /// <summary>Opens the world save/restore page for one server. Same navigation pattern as
     /// <see cref="OpenEditor"/>.</summary>
     private void OpenBackups(ServerRowViewModel row) =>
-        SelectedPage = new BackupsViewModel(row, () => SelectedPage = ServersPage);
+        SelectedPage = new BackupsViewModel(row, Activity, () => SelectedPage = ServersPage);
 
     /// <summary>Opens the scheduled-tasks page for one server. Same navigation pattern as
     /// <see cref="OpenEditor"/>.</summary>

@@ -97,4 +97,13 @@
         <Setter Property="Background" Value="#40E81123" />
     </Style>
 
+    <!-- The positive counterpart to Danger — Start-shaped actions, tinted green. -->
+    <Style Selector="Button.Success">
+        <Setter Property="Background" Value="#2622C55E" />
+        <Setter Property="Foreground" Value="#22C55E" />
+    </Style>
+    <Style Selector="Button.Success:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#4022C55E" />
+    </Style>
+
 </Styles>
