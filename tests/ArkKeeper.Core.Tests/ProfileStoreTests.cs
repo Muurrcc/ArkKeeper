@@ -53,6 +53,23 @@ public class ProfileStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task SaveAsync_CalledConcurrentlyForTheSameProfile_NeverThrows()
+    {
+        // File.Create defaults to FileShare.None — two overlapping SaveAsync calls for the same
+        // profile (e.g. a user double-clicking Remove on two mod rows in quick succession, each
+        // triggering its own save) could each try to open the same path for exclusive write at
+        // once. Wrapped in WaitAsync so a regression hangs/fails loudly instead of flaking.
+        var store = new ProfileStore(_directory);
+        var profile = new ServerProfile { ProfileName = "Concurrent Save Test" };
+
+        await Task.WhenAll(Enumerable.Range(0, 10).Select(_ => store.SaveAsync(profile)))
+            .WaitAsync(TimeSpan.FromSeconds(10));
+
+        var loaded = await store.LoadAllAsync();
+        Assert.Single(loaded);
+    }
+
+    [Fact]
     public async Task Delete_RemovesProfileFile()
     {
         var store = new ProfileStore(_directory);

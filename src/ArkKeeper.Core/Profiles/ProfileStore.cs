@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 
 namespace ArkKeeper.Core.Profiles;
@@ -13,6 +14,13 @@ namespace ArkKeeper.Core.Profiles;
 /// </summary>
 public sealed class ProfileStore
 {
+    // File.Create defaults to FileShare.None, so two overlapping SaveAsync calls for the same
+    // profile (e.g. rapid-fire Add/Remove on the Mods page, which has no busy-guard unlike
+    // DownloadAllAsync) would race to open the same path for exclusive write and one would throw
+    // IOException. Keyed per profile rather than one global lock, so unrelated profiles still
+    // save concurrently.
+    private readonly ConcurrentDictionary<Guid, SemaphoreSlim> _saveLocks = new();
+
     public ProfileStore(string directory)
     {
         Directory = directory;
@@ -43,10 +51,19 @@ public sealed class ProfileStore
 
     public async Task SaveAsync(ServerProfile profile, CancellationToken cancellationToken = default)
     {
-        System.IO.Directory.CreateDirectory(Directory);
-        var path = PathFor(profile.ProfileId);
-        await using var stream = File.Create(path);
-        await JsonSerializer.SerializeAsync(stream, profile.ToData(), ServerProfileDataJsonContext.Default.ServerProfileData, cancellationToken);
+        var gate = _saveLocks.GetOrAdd(profile.ProfileId, static _ => new SemaphoreSlim(1, 1));
+        await gate.WaitAsync(cancellationToken);
+        try
+        {
+            System.IO.Directory.CreateDirectory(Directory);
+            var path = PathFor(profile.ProfileId);
+            await using var stream = File.Create(path);
+            await JsonSerializer.SerializeAsync(stream, profile.ToData(), ServerProfileDataJsonContext.Default.ServerProfileData, cancellationToken);
+        }
+        finally
+        {
+            gate.Release();
+        }
     }
 
     public void Delete(Guid profileId)
