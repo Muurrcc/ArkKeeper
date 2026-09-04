@@ -25,6 +25,9 @@ public sealed class ServerProfileData
     public string AdminPassword { get; set; } = string.Empty;
     public bool RconEnabled { get; set; }
     public int RconPort { get; set; }
+    public bool DisableBattlEye { get; set; }
+    public ProcessPriorityLevel ProcessPriority { get; set; } = ProcessPriorityLevel.Normal;
+    public int CpuCoreLimit { get; set; }
     public bool PveMode { get; set; }
     public bool Hardcore { get; set; }
     public bool ShowCrosshair { get; set; }

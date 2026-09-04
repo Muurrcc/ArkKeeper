@@ -109,6 +109,25 @@
                     </StackPanel>
                 </Expander>
 
+                <Expander Header="Anti-cheat and performance" IsExpanded="True">
+                    <StackPanel Margin="0,12,0,0">
+                        <Grid Classes="FieldRow" ColumnDefinitions="200,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Disable BattlEye anti-cheat" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Profile.DisableBattlEye}" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="200,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="Process priority" />
+                            <ComboBox Grid.Column="1" ItemsSource="{Binding ProcessPriorityLevels}"
+                                      SelectedItem="{Binding Profile.ProcessPriority}" HorizontalAlignment="Stretch" />
+                        </Grid>
+                        <Grid Classes="FieldRow" ColumnDefinitions="200,*">
+                            <TextBlock Grid.Column="0" Classes="FieldLabel" Text="CPU core limit (0 = all cores)" />
+                            <ComboBox Grid.Column="1" ItemsSource="{Binding CpuCoreLimitOptions}"
+                                      SelectedItem="{Binding Profile.CpuCoreLimit}" HorizontalAlignment="Stretch" />
+                        </Grid>
+                    </StackPanel>
+                </Expander>
+
                 <Expander Header="Passwords" IsExpanded="False">
                     <StackPanel Margin="0,12,0,0">
                         <Grid Classes="FieldRow" ColumnDefinitions="200,*">

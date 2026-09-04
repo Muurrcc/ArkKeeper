@@ -65,6 +65,27 @@ public sealed partial class ServerProfile : ObservableObject
 
     #endregion
 
+    #region Anti-cheat / performance (launch command + OS process — not written to any .ini file)
+
+    /// <summary>Adds <c>-NoBattlEye</c> to the launch command, turning off ARK's BattlEye
+    /// anti-cheat for this server (some private/modded servers disable it — BattlEye can conflict
+    /// with certain mods, or admins may prefer their own anti-cheat).</summary>
+    [ObservableProperty]
+    private bool _disableBattlEye;
+
+    /// <summary>OS scheduling priority for the server process. Higher priority gets more CPU time
+    /// relative to other processes on the machine at the cost of everything else running slower —
+    /// same trade-off as setting it by hand in Task Manager.</summary>
+    [ObservableProperty]
+    private ProcessPriorityLevel _processPriority = ProcessPriorityLevel.Normal;
+
+    /// <summary>Caps the server to this many CPU cores (the lowest-indexed ones) via processor
+    /// affinity. 0 means unrestricted — use every core the machine has.</summary>
+    [ObservableProperty]
+    private int _cpuCoreLimit;
+
+    #endregion
+
     #region Rules (GameUserSettings.ini [ServerSettings])
 
     [ObservableProperty]
@@ -1073,6 +1094,9 @@ public sealed partial class ServerProfile : ObservableObject
         AdminPassword = AdminPassword,
         RconEnabled = RconEnabled,
         RconPort = RconPort,
+        DisableBattlEye = DisableBattlEye,
+        ProcessPriority = ProcessPriority,
+        CpuCoreLimit = CpuCoreLimit,
         PveMode = PveMode,
         Hardcore = Hardcore,
         ShowCrosshair = ShowCrosshair,
@@ -1310,6 +1334,9 @@ public sealed partial class ServerProfile : ObservableObject
             AdminPassword = data.AdminPassword,
             RconEnabled = data.RconEnabled,
             RconPort = data.RconPort,
+            DisableBattlEye = data.DisableBattlEye,
+            ProcessPriority = data.ProcessPriority,
+            CpuCoreLimit = data.CpuCoreLimit,
             PveMode = data.PveMode,
             Hardcore = data.Hardcore,
             ShowCrosshair = data.ShowCrosshair,

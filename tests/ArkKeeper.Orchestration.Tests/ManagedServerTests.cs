@@ -58,6 +58,23 @@ public class ManagedServerTests
     }
 
     [Fact]
+    public async Task StopAsync_WhenRconIsUnreachable_FallsBackToKillingTheProcess()
+    {
+        // No FakeRconServer listening on this port — StopAsync used to let the connection
+        // failure bubble out of the method entirely and leave the process running (reported as
+        // "Stop doesn't work"); it must fall back to Kill() instead, same as when RCON connects
+        // but the graceful shutdown commands themselves fail.
+        var profile = new ServerProfile { RconPort = 39123, AdminPassword = "admin-pw" };
+        using var process = new ServerProcess(CmdExe, "/c ping -n 30 127.0.0.1 >nul");
+        await using var server = new ManagedServer(profile, process);
+        server.Start();
+
+        await server.StopAsync(TimeSpan.FromSeconds(1));
+
+        Assert.Equal(ServerStatus.Stopped, server.Status);
+    }
+
+    [Fact]
     public async Task SendRconCommandAsync_SendsCommandAndReturnsResponse()
     {
         await using var rconServer = new FakeRconServer();

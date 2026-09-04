@@ -18,15 +18,21 @@ public sealed class ServerProcess : IDisposable
 {
     private Process? _process;
 
-    public ServerProcess(string executablePath, string arguments)
+    public ServerProcess(string executablePath, string arguments, ProcessPriorityLevel priority = ProcessPriorityLevel.Normal, int cpuCoreLimit = 0)
     {
         ExecutablePath = executablePath;
         Arguments = arguments;
+        Priority = priority;
+        CpuCoreLimit = cpuCoreLimit;
     }
 
     public string ExecutablePath { get; }
 
     public string Arguments { get; }
+
+    public ProcessPriorityLevel Priority { get; }
+
+    public int CpuCoreLimit { get; }
 
     public ServerStatus Status => _process is { HasExited: false } ? ServerStatus.Running : ServerStatus.Stopped;
 
@@ -36,7 +42,7 @@ public sealed class ServerProcess : IDisposable
     public event EventHandler? Exited;
 
     public static ServerProcess ForProfile(ServerProfile profile) =>
-        new(profile.GetServerExecutablePath(), LaunchArgumentsBuilder.Build(profile));
+        new(profile.GetServerExecutablePath(), LaunchArgumentsBuilder.Build(profile), profile.ProcessPriority, profile.CpuCoreLimit);
 
     public void Start()
     {
@@ -71,6 +77,36 @@ public sealed class ServerProcess : IDisposable
         newProcess.Exited += OnProcessExited;
         newProcess.Start();
         _process = newProcess;
+        ApplyPerformanceSettings(newProcess);
+    }
+
+    /// <summary>Best-effort: a priority/affinity change failing (e.g. the process already exited,
+    /// or the OS denies it) shouldn't take down a server that otherwise started fine.</summary>
+    private void ApplyPerformanceSettings(Process process)
+    {
+        try
+        {
+            process.PriorityClass = Priority switch
+            {
+                ProcessPriorityLevel.Idle => ProcessPriorityClass.Idle,
+                ProcessPriorityLevel.BelowNormal => ProcessPriorityClass.BelowNormal,
+                ProcessPriorityLevel.AboveNormal => ProcessPriorityClass.AboveNormal,
+                ProcessPriorityLevel.High => ProcessPriorityClass.High,
+                _ => ProcessPriorityClass.Normal,
+            };
+
+            if (CpuCoreLimit > 0 && CpuCoreLimit < Environment.ProcessorCount &&
+                (OperatingSystem.IsWindows() || OperatingSystem.IsLinux()))
+            {
+                // The lowest CpuCoreLimit bits — e.g. a limit of 4 restricts the process to
+                // cores 0-3, mirroring what setting affinity by hand in Task Manager looks like.
+                // ProcessorAffinity isn't supported on macOS, hence the platform check.
+                process.ProcessorAffinity = (nint)((1L << CpuCoreLimit) - 1);
+            }
+        }
+        catch
+        {
+        }
     }
 
     /// <summary>Terminates the process immediately. Prefer

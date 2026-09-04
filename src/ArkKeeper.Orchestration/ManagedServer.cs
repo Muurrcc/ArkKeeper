@@ -94,8 +94,30 @@ public sealed class ManagedServer : IAsyncDisposable
         await _rconLock.WaitAsync(cancellationToken);
         try
         {
-            var rcon = await EnsureConnectedAsync(forceReconnect: false, cancellationToken);
-            await GracefulShutdown.StopAsync(_process, rcon, timeout, cancellationToken);
+            RconClient? rcon = null;
+            try
+            {
+                rcon = await EnsureConnectedAsync(forceReconnect: false, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                // RCON refusing the connection (server still loading, RCON disabled, wrong
+                // port/password, ...) used to bubble straight out of StopAsync and leave the
+                // process running — Stop looked like it silently did nothing. Falling back to
+                // Kill() here instead means Stop always actually stops the server, same as when
+                // GracefulShutdown's own RCON commands fail once connected.
+                _logger.LogWarning(ex, "Could not reach RCON to stop {SessionName} gracefully, killing instead", Profile.SessionName);
+            }
+
+            if (rcon is not null)
+            {
+                await GracefulShutdown.StopAsync(_process, rcon, timeout, cancellationToken);
+            }
+
+            if (_process.Status == ServerStatus.Running)
+            {
+                _process.Kill();
+            }
         }
         finally
         {

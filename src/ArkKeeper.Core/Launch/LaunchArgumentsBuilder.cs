@@ -39,6 +39,11 @@ public static class LaunchArgumentsBuilder
             flags.Add($"-mods={string.Join(',', profile.ModIds)}");
         }
 
+        if (profile.DisableBattlEye)
+        {
+            flags.Add("-NoBattlEye");
+        }
+
         return string.Join('?', urlParameters) + " " + string.Join(' ', flags);
     }
 }

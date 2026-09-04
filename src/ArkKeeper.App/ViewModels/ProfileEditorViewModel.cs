@@ -47,6 +47,14 @@ public partial class ProfileEditorViewModel : ViewModelBase
         "Extinction", "Valguero_P", "Genesis", "CrystalIsles", "Genesis2", "LostIsland", "Fjordur",
     ];
 
+    public IReadOnlyList<ProcessPriorityLevel> ProcessPriorityLevels { get; } = Enum.GetValues<ProcessPriorityLevel>();
+
+    /// <summary>0 (unrestricted) plus every core count up to what this machine actually has, for
+    /// the CPU core limit picker — offering more than <see cref="Environment.ProcessorCount"/>
+    /// would let the user pick a limit the machine can never hit.</summary>
+    public IReadOnlyList<int> CpuCoreLimitOptions { get; } =
+        Enumerable.Range(0, Environment.ProcessorCount + 1).ToList();
+
     /// <summary>Reveals the ~200 less-common settings (structures, dinos/taming, PvP, chat,
     /// engrams/crafting, world/environment, player stats, and raw override lists) behind an
     /// opt-in toggle rather than always showing all 226 of ServerProfile's settings — most users

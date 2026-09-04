@@ -75,4 +75,24 @@ public class LaunchArgumentsBuilderTests
 
         Assert.DoesNotContain("-RCONPort=", args);
     }
+
+    [Fact]
+    public void Build_WhenBattlEyeDisabled_AddsNoBattlEyeFlag()
+    {
+        var profile = new ServerProfile { DisableBattlEye = true };
+
+        var args = LaunchArgumentsBuilder.Build(profile);
+
+        Assert.Contains("-NoBattlEye", args);
+    }
+
+    [Fact]
+    public void Build_WhenBattlEyeNotDisabled_OmitsNoBattlEyeFlag()
+    {
+        var profile = new ServerProfile { DisableBattlEye = false };
+
+        var args = LaunchArgumentsBuilder.Build(profile);
+
+        Assert.DoesNotContain("-NoBattlEye", args);
+    }
 }
