@@ -98,7 +98,13 @@ public partial class SchedulerViewModel : ViewModelBase
     [RelayCommand]
     private void Close() => _onClose();
 
-    private void RefreshTasks()
+    /// <summary>Re-reads Next/Last run times from the live schedule. <see cref="ScheduleRowViewModel"/>
+    /// snapshots those into plain, non-observable strings at construction time — without calling
+    /// this again, a task that actually ran while this page was open (background execution
+    /// doesn't stop just because a different page has focus) would show a stale "Last: Never" or
+    /// yesterday's "Next:" forever, since nothing ever re-read the schedule after the page first
+    /// opened. Called from <see cref="MainViewModel"/>'s poll tick while this is the open page.</summary>
+    public void RefreshTasks()
     {
         Tasks.Clear();
         foreach (var schedule in _server.Scheduler.Schedules)

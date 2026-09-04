@@ -45,6 +45,15 @@ public partial class MainViewModel : ViewModelBase
             ServersPage.RefreshAll();
             DashboardPage.RefreshSummary();
 
+            // A scheduled task runs in the background regardless of which page is open (that's
+            // the whole point of a scheduler) — without this, leaving the Scheduler page open
+            // while one of its own tasks actually fires never updated the displayed "Next:"/
+            // "Last:" times, since ScheduleRowViewModel snapshots them once at construction.
+            if (SelectedPage is SchedulerViewModel schedulerPage)
+            {
+                schedulerPage.RefreshTasks();
+            }
+
             // Guarded against overlap: a slow/unreachable RCON connection could otherwise let
             // ticks pile up faster than they resolve.
             if (_isRunningScheduledTasksCheck)
