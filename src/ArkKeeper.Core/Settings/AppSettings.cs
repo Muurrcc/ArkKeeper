@@ -17,6 +17,11 @@ public sealed class AppSettings
     /// have its own.</summary>
     public string? DiscordWebhookUrl { get; set; }
 
+    /// <summary>URL of the JSON manifest <c>UpdateChecker</c> polls for a newer ArkKeeper release.
+    /// Empty by default — ArkKeeper doesn't host one itself yet, so this only does anything once
+    /// pointed at a manifest the user controls.</summary>
+    public string? UpdateManifestUrl { get; set; }
+
     public bool DarkTheme { get; set; } = true;
 
     public string AccentColorHex { get; set; } = "#0FC2C0";

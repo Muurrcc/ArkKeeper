@@ -72,6 +72,28 @@
                 </StackPanel>
             </StackPanel>
 
+            <StackPanel Spacing="8">
+                <TextBlock Text="Updates" FontWeight="SemiBold" />
+                <TextBlock Opacity="0.6" FontSize="12">
+                    <Run Text="Current version: " /><Run Text="{Binding CurrentVersion}" />
+                </TextBlock>
+                <TextBlock Text="Manifest URL" Opacity="0.8" FontSize="12" />
+                <TextBox Text="{Binding UpdateManifestUrl}"
+                          PlaceholderText="URL of a JSON {LatestVersion, DownloadUrl} manifest" />
+
+                <TextBlock Text="{Binding UpdateErrorMessage}"
+                           IsVisible="{Binding UpdateErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}"
+                           Foreground="{DynamicResource SystemFillColorCriticalBrush}" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding UpdateStatusMessage}"
+                           IsVisible="{Binding UpdateStatusMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}"
+                           Foreground="{DynamicResource SystemFillColorSuccessBrush}" TextWrapping="Wrap" />
+
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button Content="Check for updates" Command="{Binding CheckForUpdatesCommand}" />
+                    <Button Content="Download update" Command="{Binding DownloadUpdateCommand}" />
+                </StackPanel>
+            </StackPanel>
+
             <Button Content="Save settings" Command="{Binding SaveCommand}" HorizontalAlignment="Left" />
         </StackPanel>
     </ScrollViewer>
