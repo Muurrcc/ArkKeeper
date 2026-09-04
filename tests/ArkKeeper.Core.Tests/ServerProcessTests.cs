@@ -1,3 +1,4 @@
+using ArkKeeper.Core.Profiles;
 using ArkKeeper.Core.Servers;
 using Xunit;
 
@@ -53,6 +54,28 @@ public class ServerProcessTests
         await exitedSignal.Task.WaitAsync(TimeSpan.FromSeconds(10));
 
         Assert.Equal(ServerStatus.Stopped, process.Status);
+    }
+
+    [Fact]
+    public void ForProfile_Start_RefreshesArgumentsFromTheLiveProfileEachTime_NotJustAtConstruction()
+    {
+        // ServerProcess.ForProfile is called exactly once per profile — the ManagedServer wrapping
+        // it is cached for the app's lifetime (ServerFleet.GetOrAdd) — so unless Start() re-reads
+        // the profile every time, editing and saving a launch-only setting (BattlEye, ports,
+        // mods, ...) after the server was first touched would silently keep using whatever the
+        // profile looked like the first time, no matter how many times it's saved afterward. A
+        // real bug a user hit: toggled "Disable BattlEye" and it had no effect on an already-known
+        // profile until restarting the whole app.
+        var profile = new ServerProfile { InstallDirectory = @"X:\does\not\exist\for\this\test", DisableBattlEye = false };
+        var process = ServerProcess.ForProfile(profile);
+        Assert.DoesNotContain("-NoBattlEye", process.Arguments);
+
+        profile.DisableBattlEye = true;
+
+        // The executable genuinely doesn't exist, so Start() throws — but RefreshFromProfile()
+        // runs before that check, so Arguments is still updated by the time it does.
+        Assert.Throws<FileNotFoundException>(() => process.Start());
+        Assert.Contains("-NoBattlEye", process.Arguments);
     }
 
     [Fact]

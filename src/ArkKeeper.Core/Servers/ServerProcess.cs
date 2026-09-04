@@ -18,6 +18,12 @@ public sealed class ServerProcess : IDisposable
 {
     private Process? _process;
 
+    /// <summary>Set only by <see cref="ForProfile"/> — lets <see cref="Start"/> re-derive
+    /// ExecutablePath/Arguments/Priority/CpuCoreLimit from the live profile every time instead of
+    /// just once. Null for a <see cref="ServerProcess"/> built directly (tests pass a fixed
+    /// executable/arguments with no profile at all), where refreshing has nothing to read from.</summary>
+    private readonly ServerProfile? _profile;
+
     public ServerProcess(string executablePath, string arguments, ProcessPriorityLevel priority = ProcessPriorityLevel.Normal, int cpuCoreLimit = 0)
     {
         ExecutablePath = executablePath;
@@ -26,13 +32,19 @@ public sealed class ServerProcess : IDisposable
         CpuCoreLimit = cpuCoreLimit;
     }
 
-    public string ExecutablePath { get; }
+    private ServerProcess(ServerProfile profile)
+        : this(profile.GetServerExecutablePath(), LaunchArgumentsBuilder.Build(profile), profile.ProcessPriority, profile.CpuCoreLimit)
+    {
+        _profile = profile;
+    }
 
-    public string Arguments { get; }
+    public string ExecutablePath { get; private set; }
 
-    public ProcessPriorityLevel Priority { get; }
+    public string Arguments { get; private set; }
 
-    public int CpuCoreLimit { get; }
+    public ProcessPriorityLevel Priority { get; private set; }
+
+    public int CpuCoreLimit { get; private set; }
 
     public ServerStatus Status => _process is { HasExited: false } ? ServerStatus.Running : ServerStatus.Stopped;
 
@@ -41,11 +53,33 @@ public sealed class ServerProcess : IDisposable
     /// <summary>Raised when the process exits, however that happened (crash, DoExit via RCON, Kill()).</summary>
     public event EventHandler? Exited;
 
-    public static ServerProcess ForProfile(ServerProfile profile) =>
-        new(profile.GetServerExecutablePath(), LaunchArgumentsBuilder.Build(profile), profile.ProcessPriority, profile.CpuCoreLimit);
+    public static ServerProcess ForProfile(ServerProfile profile) => new(profile);
+
+    /// <summary>Re-derives ExecutablePath/Arguments/Priority/CpuCoreLimit from the live profile —
+    /// a <see cref="ManagedServer"/>-and-so-this-<see cref="ServerProcess"/> is created once per
+    /// profile and then kept for the app's lifetime (<c>ServerFleet.GetOrAdd</c>), so without this
+    /// every launch-only setting (BattlEye, ports, session name, map, RCON, mods, process
+    /// priority/CPU limit — anything <c>LaunchArgumentsBuilder</c> reads) would silently keep
+    /// using whatever the profile looked like the first time this server was touched, no matter
+    /// how many times it was edited and saved afterward. A real bug found by a user toggling
+    /// "Disable BattlEye" and seeing it have no effect on an already-known profile.</summary>
+    private void RefreshFromProfile()
+    {
+        if (_profile is null)
+        {
+            return;
+        }
+
+        ExecutablePath = _profile.GetServerExecutablePath();
+        Arguments = LaunchArgumentsBuilder.Build(_profile);
+        Priority = _profile.ProcessPriority;
+        CpuCoreLimit = _profile.CpuCoreLimit;
+    }
 
     public void Start()
     {
+        RefreshFromProfile();
+
         if (Status == ServerStatus.Running)
         {
             throw new InvalidOperationException("The server process is already running.");
