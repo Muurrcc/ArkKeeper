@@ -66,11 +66,16 @@ public sealed class ManagedServer : IAsyncDisposable
 
     public int? ProcessId => _process.ProcessId;
 
+    /// <summary>Writes GameUserSettings.ini/Game.ini before launching — without this, none of
+    /// ServerProfile's settings beyond the handful LaunchArgumentsBuilder puts on the command
+    /// line (map, ports, session name, mods, ...) would ever actually reach the running server;
+    /// everything else the UI exposes would silently do nothing.</summary>
     public void Start()
     {
         _stopRequested = false;
         CancelPendingRestart();
         _logger.LogInformation("Starting server {SessionName}", Profile.SessionName);
+        Profile.WriteConfigFiles();
         _process.Start();
         _logger.LogInformation("Server {SessionName} started, PID {ProcessId}", Profile.SessionName, _process.ProcessId);
         FireAndForgetNotify(n => n.NotifyServerStartedAsync(Profile.SessionName));

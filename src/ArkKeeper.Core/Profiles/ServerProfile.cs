@@ -995,6 +995,42 @@ public sealed partial class ServerProfile : ObservableObject
     public string GetSaveDirectory() =>
         Path.Combine(InstallDirectory, "ShooterGame", "Saved", "SavedArks");
 
+    /// <summary>Directory the dedicated server reads GameUserSettings.ini/Game.ini from on
+    /// Windows (ShooterGame\Saved\Config\WindowsServer — the standard ARK dedicated server
+    /// convention, same as the original tool).</summary>
+    public string GetConfigDirectory() =>
+        Path.Combine(InstallDirectory, "ShooterGame", "Saved", "Config", "WindowsServer");
+
+    /// <summary>Writes GameUserSettings.ini/Game.ini into <see cref="GetConfigDirectory"/> so the
+    /// dedicated server actually picks up these settings on its next start. Merges onto whatever
+    /// ini content is already there (parsed first, if the file exists) rather than overwriting
+    /// wholesale — ARK has far more settings than this profile models, and a mod or a manual edit
+    /// may have added directives here that a blind overwrite would silently destroy.</summary>
+    public void WriteConfigFiles()
+    {
+        if (string.IsNullOrWhiteSpace(InstallDirectory))
+        {
+            // Nothing to write to yet — Start() will fail right after with a clearer,
+            // specific "server executable not found" error instead.
+            return;
+        }
+
+        ServerModIds = string.Join(',', ModIds);
+
+        var configDirectory = GetConfigDirectory();
+        Directory.CreateDirectory(configDirectory);
+
+        WriteMergedIniFile(Path.Combine(configDirectory, "GameUserSettings.ini"), IniFile.GameUserSettings);
+        WriteMergedIniFile(Path.Combine(configDirectory, "Game.ini"), IniFile.Game);
+    }
+
+    private void WriteMergedIniFile(string path, IniFile file)
+    {
+        var document = File.Exists(path) ? IniDocument.Parse(File.ReadAllText(path)) : new IniDocument();
+        IniSerializer.Write(this, file, document);
+        File.WriteAllText(path, document.ToString());
+    }
+
     /// <summary>Applies values found in <paramref name="gameUserSettings"/> and <paramref name="game"/> onto this profile.</summary>
     public void ImportFrom(IniDocument gameUserSettings, IniDocument game)
     {

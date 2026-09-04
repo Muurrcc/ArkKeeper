@@ -53,10 +53,15 @@ public static class IniSerializer
         }
     }
 
-    public static IniDocument Write(object source, IniFile file)
-    {
-        var document = new IniDocument();
+    public static IniDocument Write(object source, IniFile file) => Write(source, file, new IniDocument());
 
+    /// <summary>Writes into <paramref name="document"/> in place (and returns it) instead of a
+    /// fresh one — for merging onto an existing on-disk ini file (parsed first) rather than
+    /// overwriting it wholesale, so sections/keys ArkKeeper doesn't model (manual edits, mod-added
+    /// directives) survive a write. Only ever touches the keys <paramref name="source"/>'s
+    /// <see cref="IniSettingAttribute"/>-decorated properties map to.</summary>
+    public static IniDocument Write(object source, IniFile file, IniDocument document)
+    {
         foreach (var (attribute, property) in GetIniProperties(source.GetType(), file))
         {
             var value = property.GetValue(source);
