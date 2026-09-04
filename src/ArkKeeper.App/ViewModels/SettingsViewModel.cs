@@ -3,6 +3,7 @@ using System.Reflection;
 using ArkKeeper.App.Services;
 using ArkKeeper.Core.Settings;
 using ArkKeeper.Discord;
+using ArkKeeper.Networking.SteamCmd;
 using ArkKeeper.Updater;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -35,6 +36,16 @@ public partial class SettingsViewModel : ViewModelBase
 
     [ObservableProperty]
     public partial string SteamCmdDirectory { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string? SteamCmdStatusMessage { get; set; }
+
+    [ObservableProperty]
+    public partial string? SteamCmdErrorMessage { get; set; }
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(InstallSteamCmdCommand))]
+    public partial bool IsInstallingSteamCmd { get; set; }
 
     [ObservableProperty]
     public partial string DiscordWebhookUrl { get; set; } = string.Empty;
@@ -114,6 +125,41 @@ public partial class SettingsViewModel : ViewModelBase
         _settings.UpdateManifestUrl = string.IsNullOrWhiteSpace(UpdateManifestUrl) ? null : UpdateManifestUrl;
         return _store.SaveAsync(_settings);
     }
+
+    /// <summary>Installs steamcmd.exe into <see cref="SteamCmdDirectory"/> on its own — previously
+    /// the only way to get steamcmd onto disk was as a side effect of installing a game server or
+    /// downloading a mod, with no way to just set it up ahead of time from Settings.</summary>
+    [RelayCommand(CanExecute = nameof(CanInstallSteamCmd))]
+    private async Task InstallSteamCmdAsync()
+    {
+        SteamCmdErrorMessage = null;
+        SteamCmdStatusMessage = null;
+
+        if (string.IsNullOrWhiteSpace(SteamCmdDirectory))
+        {
+            SteamCmdErrorMessage = "Choose a folder first.";
+            return;
+        }
+
+        IsInstallingSteamCmd = true;
+        try
+        {
+            using var httpClient = new HttpClient();
+            var installer = new SteamCmdInstaller(httpClient);
+            var path = await installer.EnsureInstalledAsync(SteamCmdDirectory);
+            SteamCmdStatusMessage = $"steamcmd.exe ready at {path}.";
+        }
+        catch (Exception ex)
+        {
+            SteamCmdErrorMessage = $"Couldn't install SteamCMD: {ex.Message}";
+        }
+        finally
+        {
+            IsInstallingSteamCmd = false;
+        }
+    }
+
+    private bool CanInstallSteamCmd() => !IsInstallingSteamCmd;
 
     [RelayCommand]
     private async Task SendTestDiscordMessageAsync()

@@ -95,4 +95,36 @@ public class LaunchArgumentsBuilderTests
 
         Assert.DoesNotContain("-NoBattlEye", args);
     }
+
+    [Fact]
+    public void Build_AlwaysIncludesMaxPlayersOnTheCommandLine()
+    {
+        // ARK's dedicated server is known to ignore MaxPlayers when it's only set in
+        // GameUserSettings.ini — it has to be on the launch command line to actually apply.
+        var profile = new ServerProfile { MaxPlayers = 42 };
+
+        var args = LaunchArgumentsBuilder.Build(profile);
+
+        Assert.Contains("MaxPlayers=42", args);
+    }
+
+    [Fact]
+    public void Build_WithServerIPSet_AddsMultiHomeFlag()
+    {
+        var profile = new ServerProfile { ServerIP = "10.0.0.5" };
+
+        var args = LaunchArgumentsBuilder.Build(profile);
+
+        Assert.Contains("MultiHome=10.0.0.5", args);
+    }
+
+    [Fact]
+    public void Build_WithoutServerIP_OmitsMultiHomeFlag()
+    {
+        var profile = new ServerProfile { ServerIP = "" };
+
+        var args = LaunchArgumentsBuilder.Build(profile);
+
+        Assert.DoesNotContain("MultiHome=", args);
+    }
 }

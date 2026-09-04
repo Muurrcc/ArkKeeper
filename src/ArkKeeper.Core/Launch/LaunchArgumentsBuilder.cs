@@ -26,6 +26,20 @@ public static class LaunchArgumentsBuilder
         urlParameters.Add($"Port={profile.Port}");
         urlParameters.Add($"QueryPort={profile.QueryPort}");
 
+        // ARK's dedicated server is well known to ignore MaxPlayers when it's only set in
+        // GameUserSettings.ini — the original tool this is a modernization of always puts it on
+        // the launch command line too (confirmed in its own GetServerArgs()), which is what
+        // actually makes it take effect. Reported directly: "El maximo de jugadores no se aplica."
+        urlParameters.Add($"MaxPlayers={profile.MaxPlayers}");
+
+        if (!string.IsNullOrWhiteSpace(profile.ServerIP))
+        {
+            // Binds the server to one specific network interface — opt-in only (most servers
+            // leave this blank and let ARK listen on all interfaces), matching the original
+            // tool's own guard around this same parameter.
+            urlParameters.Add($"MultiHome={profile.ServerIP}");
+        }
+
         var flags = new List<string> { "-server", "-log" };
 
         if (profile.RconEnabled)

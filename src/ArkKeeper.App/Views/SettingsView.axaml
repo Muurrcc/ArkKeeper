@@ -68,12 +68,28 @@
                             Click="OnBrowseDefaultInstallDirectoryClick" />
                 </Grid>
                 <TextBlock Text="SteamCMD directory" Opacity="0.8" FontSize="12" Margin="0,8,0,0" />
-                <Grid ColumnDefinitions="*,Auto">
+                <Grid ColumnDefinitions="*,Auto,Auto">
                     <TextBox Grid.Column="0" Text="{Binding SteamCmdDirectory}"
                               PlaceholderText="Where steamcmd.exe is (or will be) installed" />
                     <Button Grid.Column="1" Classes="Pill" Content="Browse..." Margin="8,0,0,0"
                             Click="OnBrowseSteamCmdDirectoryClick" />
+                    <Button Grid.Column="2" Classes="Pill accent" Content="Install SteamCMD" Margin="8,0,0,0"
+                            Command="{Binding InstallSteamCmdCommand}" />
                 </Grid>
+
+                <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsInstallingSteamCmd}" Margin="0,4,0,0">
+                    <Border Classes="IconCircle Live" Width="10" Height="10"
+                            Background="{DynamicResource SystemFillColorAttentionBrush}" />
+                    <TextBlock Text="Installing SteamCMD..." Opacity="0.75" FontSize="12" VerticalAlignment="Center" />
+                </StackPanel>
+                <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsInstallingSteamCmd}" Height="4" />
+
+                <TextBlock Text="{Binding SteamCmdErrorMessage}"
+                           IsVisible="{Binding SteamCmdErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}"
+                           Foreground="{DynamicResource SystemFillColorCriticalBrush}" FontSize="12" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding SteamCmdStatusMessage}"
+                           IsVisible="{Binding SteamCmdStatusMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}"
+                           Foreground="{DynamicResource SystemFillColorSuccessBrush}" FontSize="12" TextWrapping="Wrap" />
             </StackPanel>
             </Border>
 
