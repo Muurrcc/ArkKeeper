@@ -1,0 +1,74 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:ArkKeeper.App.ViewModels"
+             xmlns:conv="using:ArkKeeper.App.Converters"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="ArkKeeper.App.Views.SchedulerView"
+             x:DataType="vm:SchedulerViewModel"
+             x:Name="Root">
+
+    <DockPanel Margin="24">
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+            <StackPanel Grid.Column="0" Spacing="2">
+                <TextBlock FontSize="24" FontWeight="SemiBold" Text="Scheduled tasks" />
+                <TextBlock Text="{Binding Profile.ProfileName}" Opacity="0.7" />
+            </StackPanel>
+            <Button Grid.Column="1" Content="Close" Command="{Binding CloseCommand}" />
+        </Grid>
+
+        <TextBlock DockPanel.Dock="Top"
+                   Text="{Binding ErrorMessage}"
+                   IsVisible="{Binding ErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}"
+                   Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                   Margin="0,0,0,12" TextWrapping="Wrap" />
+
+        <Border DockPanel.Dock="Top" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                CornerRadius="8" Padding="16" Margin="0,0,0,16">
+            <StackPanel Spacing="10">
+                <TextBlock Text="Add a scheduled task" FontWeight="SemiBold" />
+                <Grid ColumnDefinitions="*,*" >
+                    <TextBox Grid.Column="0" Text="{Binding NewTaskName}" PlaceholderText="Name" Margin="0,0,8,0" />
+                    <TextBox Grid.Column="1" Text="{Binding NewTaskCommand}" PlaceholderText="RCON command (e.g. SaveWorld)" />
+                </Grid>
+                <Grid ColumnDefinitions="*,*">
+                    <ComboBox Grid.Column="0" ItemsSource="{Binding ScheduleKinds}" SelectedItem="{Binding NewTaskKind}" Margin="0,0,8,0" />
+                    <TextBox Grid.Column="1" Text="{Binding NewTaskValueText}"
+                              PlaceholderText="Interval: hours (e.g. 6) - Daily at: HH:mm" />
+                </Grid>
+                <Button Content="Add task" Command="{Binding AddCommand}" HorizontalAlignment="Left" />
+            </StackPanel>
+        </Border>
+
+        <ScrollViewer>
+            <StackPanel Spacing="8">
+                <TextBlock Text="No scheduled tasks yet."
+                           Opacity="0.6" IsVisible="{Binding HasNoTasks}" />
+
+                <ItemsControl ItemsSource="{Binding Tasks}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ScheduleRowViewModel">
+                            <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                                    CornerRadius="6" Padding="12" Margin="0,0,0,8">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <StackPanel Grid.Column="0" Spacing="2">
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding Description}" Opacity="0.7" FontSize="12" />
+                                        <TextBlock Opacity="0.6" FontSize="11">
+                                            <Run Text="Next: " /><Run Text="{Binding NextRunDisplay}" />
+                                            <Run Text="  ·  Last: " /><Run Text="{Binding LastRunDisplay}" />
+                                        </TextBlock>
+                                    </StackPanel>
+                                    <Button Grid.Column="1" Content="Remove"
+                                            Command="{Binding #Root.((vm:SchedulerViewModel)DataContext).RemoveCommand}"
+                                            CommandParameter="{Binding}" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>

@@ -16,6 +16,7 @@ public sealed partial class ServersViewModel : ViewModelBase
     private readonly Action<ServerRowViewModel> _openConsole;
     private readonly Action<ServerRowViewModel> _openPlayers;
     private readonly Action<ServerRowViewModel> _openBackups;
+    private readonly Action<ServerRowViewModel> _openScheduler;
 
     public ServersViewModel(
         ObservableCollection<ServerProfile> profiles,
@@ -24,7 +25,8 @@ public sealed partial class ServersViewModel : ViewModelBase
         Action<ServerProfile?> openEditor,
         Action<ServerRowViewModel> openConsole,
         Action<ServerRowViewModel> openPlayers,
-        Action<ServerRowViewModel> openBackups)
+        Action<ServerRowViewModel> openBackups,
+        Action<ServerRowViewModel> openScheduler)
     {
         _profiles = profiles;
         _fleet = fleet;
@@ -33,10 +35,11 @@ public sealed partial class ServersViewModel : ViewModelBase
         _openConsole = openConsole;
         _openPlayers = openPlayers;
         _openBackups = openBackups;
+        _openScheduler = openScheduler;
 
         foreach (var profile in profiles)
         {
-            Servers.Add(new ServerRowViewModel(_fleet.GetOrAdd(profile)));
+            AddRow(profile);
         }
 
         profiles.CollectionChanged += OnProfilesChanged;
@@ -58,6 +61,16 @@ public sealed partial class ServersViewModel : ViewModelBase
         }
     }
 
+    /// <summary>Runs each server's due scheduled tasks (a no-op per row while it isn't running).
+    /// Called on the same poll timer as <see cref="RefreshAll"/>.</summary>
+    public async Task RunDueScheduledTasksForAllAsync()
+    {
+        foreach (var server in Servers)
+        {
+            await server.RunDueScheduledTasksAsync();
+        }
+    }
+
     [RelayCommand]
     private void AddServer() => _openEditor(null);
 
@@ -72,6 +85,9 @@ public sealed partial class ServersViewModel : ViewModelBase
 
     [RelayCommand]
     private void Backups(ServerRowViewModel row) => _openBackups(row);
+
+    [RelayCommand]
+    private void Scheduler(ServerRowViewModel row) => _openScheduler(row);
 
     [RelayCommand]
     private async Task DeleteAsync(ServerRowViewModel row)
@@ -93,7 +109,7 @@ public sealed partial class ServersViewModel : ViewModelBase
         {
             foreach (ServerProfile profile in e.NewItems)
             {
-                Servers.Add(new ServerRowViewModel(_fleet.GetOrAdd(profile)));
+                AddRow(profile);
             }
         }
 
@@ -110,5 +126,12 @@ public sealed partial class ServersViewModel : ViewModelBase
         }
 
         IsEmpty = Servers.Count == 0;
+    }
+
+    private void AddRow(ServerProfile profile)
+    {
+        var row = new ServerRowViewModel(_fleet.GetOrAdd(profile));
+        Servers.Add(row);
+        _ = row.EnsureSchedulerLoadedAsync();
     }
 }

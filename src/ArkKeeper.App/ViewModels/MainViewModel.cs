@@ -14,6 +14,7 @@ public partial class MainViewModel : ViewModelBase
     private readonly ProfileStore _profileStore;
     private readonly ServerFleet _fleet;
     private readonly DispatcherTimer _statusPollTimer;
+    private bool _isRunningScheduledTasksCheck;
 
     /// <summary>Design-time/previewer-only constructor — the XAML compiler needs a parameterless
     /// constructor for `&lt;vm:MainViewModel /&gt;` in MainWindow.axaml's Design.DataContext.
@@ -31,17 +32,34 @@ public partial class MainViewModel : ViewModelBase
         _profileStore = profileStore;
         _fleet = fleet;
 
-        ServersPage = new ServersViewModel(Profiles, fleet, _profileStore, OpenEditor, OpenConsole, OpenPlayers, OpenBackups);
+        ServersPage = new ServersViewModel(Profiles, fleet, _profileStore, OpenEditor, OpenConsole, OpenPlayers, OpenBackups, OpenScheduler);
         DashboardPage = new DashboardViewModel(ServersPage.Servers);
         SettingsPage = new SettingsViewModel(appSettingsStore);
 
         SelectedPage = DashboardPage;
 
         _statusPollTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
-        _statusPollTimer.Tick += (_, _) =>
+        _statusPollTimer.Tick += async (_, _) =>
         {
             ServersPage.RefreshAll();
             DashboardPage.RefreshSummary();
+
+            // Guarded against overlap: a slow/unreachable RCON connection could otherwise let
+            // ticks pile up faster than they resolve.
+            if (_isRunningScheduledTasksCheck)
+            {
+                return;
+            }
+
+            _isRunningScheduledTasksCheck = true;
+            try
+            {
+                await ServersPage.RunDueScheduledTasksForAllAsync();
+            }
+            finally
+            {
+                _isRunningScheduledTasksCheck = false;
+            }
         };
         _statusPollTimer.Start();
     }
@@ -94,4 +112,9 @@ public partial class MainViewModel : ViewModelBase
     /// <see cref="OpenEditor"/>.</summary>
     private void OpenBackups(ServerRowViewModel row) =>
         SelectedPage = new BackupsViewModel(row, () => SelectedPage = ServersPage);
+
+    /// <summary>Opens the scheduled-tasks page for one server. Same navigation pattern as
+    /// <see cref="OpenEditor"/>.</summary>
+    private void OpenScheduler(ServerRowViewModel row) =>
+        SelectedPage = new SchedulerViewModel(row, () => SelectedPage = ServersPage);
 }
