@@ -50,6 +50,22 @@ public class AppSettingsStoreTests : IDisposable
         Assert.True(File.Exists(_filePath));
     }
 
+    [Fact]
+    public async Task SaveAsync_CalledConcurrently_NeverThrows()
+    {
+        // Same shape as the ProfileStore race: File.Create defaults to FileShare.None, and
+        // SettingsViewModel fires SaveAsync as fire-and-forget ("_ = SaveAsync();") from every
+        // settings property setter — two settings changed in quick succession (e.g. toggling a
+        // switch right after picking a theme) can each open this same file for exclusive write
+        // at once.
+        var store = new AppSettingsStore(_filePath);
+
+        await Task.WhenAll(Enumerable.Range(0, 10).Select(_ => store.SaveAsync(new AppSettings())))
+            .WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.True(File.Exists(_filePath));
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_directory))

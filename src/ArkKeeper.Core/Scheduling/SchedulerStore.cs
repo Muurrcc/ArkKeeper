@@ -9,6 +9,12 @@ public sealed class SchedulerStore
 {
     private readonly string _filePath;
 
+    // File.Create defaults to FileShare.None — SchedulerViewModel's AddAsync/RemoveAsync have no
+    // busy-guard, so rapidly removing two different scheduled tasks for the same server can call
+    // SaveAsync twice concurrently for this same file. One instance always owns exactly one file,
+    // so a single semaphore (not keyed, unlike ProfileStore) is enough.
+    private readonly SemaphoreSlim _saveLock = new(1, 1);
+
     public SchedulerStore(string filePath)
     {
         _filePath = filePath;
@@ -28,14 +34,22 @@ public sealed class SchedulerStore
 
     public async Task SaveAsync(IReadOnlyList<ScheduledTask> tasks, CancellationToken cancellationToken = default)
     {
-        var directory = Path.GetDirectoryName(_filePath);
-        if (!string.IsNullOrEmpty(directory))
+        await _saveLock.WaitAsync(cancellationToken);
+        try
         {
-            Directory.CreateDirectory(directory);
-        }
+            var directory = Path.GetDirectoryName(_filePath);
+            if (!string.IsNullOrEmpty(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
 
-        await using var stream = File.Create(_filePath);
-        await JsonSerializer.SerializeAsync(stream, tasks.ToList(), SchedulerJsonContext.Default.ListScheduledTask, cancellationToken);
+            await using var stream = File.Create(_filePath);
+            await JsonSerializer.SerializeAsync(stream, tasks.ToList(), SchedulerJsonContext.Default.ListScheduledTask, cancellationToken);
+        }
+        finally
+        {
+            _saveLock.Release();
+        }
     }
 }
 

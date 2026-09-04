@@ -46,6 +46,22 @@ public class SchedulerStoreTests : IDisposable
         Assert.True(File.Exists(_filePath));
     }
 
+    [Fact]
+    public async Task SaveAsync_CalledConcurrently_NeverThrows()
+    {
+        // Same shape as the ProfileStore race: File.Create defaults to FileShare.None, and
+        // SchedulerViewModel's AddAsync/RemoveAsync (no busy-guard) both call SaveScheduleAsync
+        // for this same server's SchedulerStore — rapidly removing two different scheduled tasks
+        // can open this same file for exclusive write twice at once.
+        var store = new SchedulerStore(_filePath);
+        var tasks = new List<ScheduledTask> { new("Backup", "SaveWorld", ScheduleKind.Interval, TimeSpan.FromHours(1)) };
+
+        await Task.WhenAll(Enumerable.Range(0, 10).Select(_ => store.SaveAsync(tasks)))
+            .WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.True(File.Exists(_filePath));
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_directory))

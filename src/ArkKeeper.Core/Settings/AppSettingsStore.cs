@@ -7,6 +7,11 @@ public sealed class AppSettingsStore
 {
     private readonly string _filePath;
 
+    // File.Create defaults to FileShare.None — SettingsViewModel fires SaveAsync as fire-and-forget
+    // ("_ = SaveAsync();") from every settings property setter, so two settings changed in quick
+    // succession can call SaveAsync twice concurrently for this same file.
+    private readonly SemaphoreSlim _saveLock = new(1, 1);
+
     public AppSettingsStore(string filePath)
     {
         _filePath = filePath;
@@ -26,13 +31,21 @@ public sealed class AppSettingsStore
 
     public async Task SaveAsync(AppSettings settings, CancellationToken cancellationToken = default)
     {
-        var directory = Path.GetDirectoryName(_filePath);
-        if (!string.IsNullOrEmpty(directory))
+        await _saveLock.WaitAsync(cancellationToken);
+        try
         {
-            Directory.CreateDirectory(directory);
-        }
+            var directory = Path.GetDirectoryName(_filePath);
+            if (!string.IsNullOrEmpty(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
 
-        await using var stream = File.Create(_filePath);
-        await JsonSerializer.SerializeAsync(stream, settings, AppSettingsJsonContext.Default.AppSettings, cancellationToken);
+            await using var stream = File.Create(_filePath);
+            await JsonSerializer.SerializeAsync(stream, settings, AppSettingsJsonContext.Default.AppSettings, cancellationToken);
+        }
+        finally
+        {
+            _saveLock.Release();
+        }
     }
 }
