@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using ArkKeeper.Networking.Processes;
 
 namespace ArkKeeper.Networking.SteamCmd;
 
@@ -83,14 +84,16 @@ public sealed class SteamCmdClient
         };
 
         using var process = new Process { StartInfo = startInfo, EnableRaisingEvents = true };
-        process.OutputDataReceived += (_, e) => { if (e.Data is not null) onOutput?.Invoke(e.Data); };
-        process.ErrorDataReceived += (_, e) => { if (e.Data is not null) onOutput?.Invoke(e.Data); };
-
         process.Start();
-        process.BeginOutputReadLine();
-        process.BeginErrorReadLine();
+
+        // Process.OutputDataReceived/BeginOutputReadLine only split on '\n' — SteamCMD's download
+        // progress uses '\r'-only updates, so that reader buffers them silently until the next
+        // real newline. ProcessOutputPump treats '\r' as a line terminator too.
+        var stdOutTask = ProcessOutputPump.PumpAsync(process.StandardOutput, onOutput, cancellationToken);
+        var stdErrTask = ProcessOutputPump.PumpAsync(process.StandardError, onOutput, cancellationToken);
 
         await process.WaitForExitAsync(cancellationToken);
+        await Task.WhenAll(stdOutTask, stdErrTask);
         return process.ExitCode;
     }
 

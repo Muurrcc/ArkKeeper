@@ -8,4 +8,8 @@ public partial class ModsView : UserControl
     {
         InitializeComponent();
     }
+
+    /// <summary>Keeps the download log scrolled to the newest line as it grows.</summary>
+    private void OnProgressLogSizeChanged(object? sender, Avalonia.Controls.SizeChangedEventArgs e) =>
+        ProgressLogScroll.ScrollToEnd();
 }

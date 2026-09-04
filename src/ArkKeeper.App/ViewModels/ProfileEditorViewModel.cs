@@ -74,6 +74,12 @@ public partial class ProfileEditorViewModel : ViewModelBase
     [ObservableProperty]
     public partial string InstallProgressLog { get; set; } = string.Empty;
 
+    /// <summary>The most recent line SteamCMD reported — shown as a prominent single line above
+    /// the scrolling log, since a download's actual progress line ("Update state ... progress:
+    /// 45.2%") is the one thing worth seeing at a glance without hunting through a growing log.</summary>
+    [ObservableProperty]
+    public partial string? LatestInstallLine { get; set; }
+
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(InstallServerCommand))]
     public partial bool IsInstalling { get; set; }
@@ -122,6 +128,7 @@ public partial class ProfileEditorViewModel : ViewModelBase
         InstallErrorMessage = null;
         InstallStatusMessage = null;
         InstallProgressLog = string.Empty;
+        LatestInstallLine = null;
 
         if (string.IsNullOrWhiteSpace(Profile.InstallDirectory))
         {
@@ -168,5 +175,9 @@ public partial class ProfileEditorViewModel : ViewModelBase
     /// <summary>SteamCmdClient's output callback fires on the process's own background thread —
     /// marshal onto the UI thread before touching an observable property.</summary>
     private void AppendLog(string line) =>
-        Dispatcher.UIThread.Post(() => InstallProgressLog += line + Environment.NewLine);
+        Dispatcher.UIThread.Post(() =>
+        {
+            InstallProgressLog += line + Environment.NewLine;
+            LatestInstallLine = line;
+        });
 }

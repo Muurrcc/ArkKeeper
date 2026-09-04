@@ -64,9 +64,29 @@
 
                         <Grid Classes="FieldRow" ColumnDefinitions="200,*">
                             <TextBlock Grid.Column="0" />
-                            <Button Grid.Column="1" Content="Install / update server"
-                                    Command="{Binding InstallServerCommand}" HorizontalAlignment="Left" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                                <Button Content="Install / update server"
+                                        Command="{Binding InstallServerCommand}" HorizontalAlignment="Left" />
+                                <!-- Only appears while installing, so at rest the button reads
+                                     exactly as before — this is purely "it's actually working"
+                                     feedback for a step that can silently sit for a long time on
+                                     a first-time multi-GB download. -->
+                                <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsInstalling}">
+                                    <Border Classes="IconCircle Live" Width="10" Height="10"
+                                            Background="{DynamicResource SystemFillColorAttentionBrush}" />
+                                    <TextBlock Text="Installing — this can take a while on a first-time download"
+                                               Opacity="0.75" FontSize="12" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </StackPanel>
                         </Grid>
+
+                        <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsInstalling}"
+                                     Height="4" Margin="0,0,0,8" />
+
+                        <TextBlock Text="{Binding LatestInstallLine}"
+                                   IsVisible="{Binding LatestInstallLine, Converter={x:Static conv:StringNotEmptyConverter.Instance}}"
+                                   FontFamily="Consolas,Cascadia Mono,monospace" FontWeight="SemiBold" FontSize="12"
+                                   Margin="0,0,0,8" TextWrapping="Wrap" />
 
                         <TextBlock Text="{Binding InstallErrorMessage}"
                                    IsVisible="{Binding InstallErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}"
@@ -80,9 +100,9 @@
                         <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" CornerRadius="6" Padding="10"
                                 IsVisible="{Binding InstallProgressLog, Converter={x:Static conv:StringNotEmptyConverter.Instance}}"
                                 MaxHeight="200">
-                            <ScrollViewer>
+                            <ScrollViewer x:Name="InstallLogScroll">
                                 <TextBlock Text="{Binding InstallProgressLog}" FontFamily="Consolas,Cascadia Mono,monospace"
-                                           FontSize="11" TextWrapping="Wrap" />
+                                           FontSize="11" TextWrapping="Wrap" SizeChanged="OnInstallLogSizeChanged" />
                             </ScrollViewer>
                         </Border>
                     </StackPanel>

@@ -44,6 +44,11 @@ public partial class ModsViewModel : ViewModelBase
     [ObservableProperty]
     public partial string ProgressLog { get; set; } = string.Empty;
 
+    /// <summary>The most recent line steamcmd reported — see the matching property on
+    /// <see cref="ProfileEditorViewModel"/> for why this exists as its own binding.</summary>
+    [ObservableProperty]
+    public partial string? LatestProgressLine { get; set; }
+
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(DownloadAllCommand))]
     public partial bool IsBusy { get; set; }
@@ -84,6 +89,7 @@ public partial class ModsViewModel : ViewModelBase
         ErrorMessage = null;
         StatusMessage = null;
         ProgressLog = string.Empty;
+        LatestProgressLine = null;
 
         if (string.IsNullOrWhiteSpace(Profile.InstallDirectory))
         {
@@ -134,7 +140,11 @@ public partial class ModsViewModel : ViewModelBase
     /// <summary>SteamCmdClient's output callback fires on the process's own background thread —
     /// marshal onto the UI thread before touching an observable property.</summary>
     private void AppendLog(string line) =>
-        Dispatcher.UIThread.Post(() => ProgressLog += line + Environment.NewLine);
+        Dispatcher.UIThread.Post(() =>
+        {
+            ProgressLog += line + Environment.NewLine;
+            LatestProgressLine = line;
+        });
 
     [RelayCommand]
     private void Close() => _onClose();

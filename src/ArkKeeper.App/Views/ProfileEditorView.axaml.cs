@@ -35,4 +35,9 @@ public partial class ProfileEditorView : UserControl
             viewModel.Profile.InstallDirectory = path;
         }
     }
+
+    /// <summary>Keeps the install log scrolled to the newest line as it grows — without this the
+    /// user has to manually scroll down every time a new line arrives during a long install.</summary>
+    private void OnInstallLogSizeChanged(object? sender, Avalonia.Controls.SizeChangedEventArgs e) =>
+        InstallLogScroll.ScrollToEnd();
 }
