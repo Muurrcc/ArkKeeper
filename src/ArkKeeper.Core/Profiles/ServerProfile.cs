@@ -1000,10 +1000,26 @@ public sealed partial class ServerProfile : ObservableObject
     {
         IniSerializer.Apply(this, IniFile.GameUserSettings, gameUserSettings);
         IniSerializer.Apply(this, IniFile.Game, game);
+
+        // ServerModIds (the ActiveMods ini key) just got overwritten by the Apply call above —
+        // mirror it into the rich ModIds collection, which is what a mods UI would actually
+        // read/edit (LaunchArgumentsBuilder uses ModIds for -mods=, not this raw string).
+        ModIds.Clear();
+        foreach (var modId in ServerModIds.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            ModIds.Add(modId);
+        }
     }
 
-    /// <summary>Produces the GameUserSettings.ini contents for this profile.</summary>
-    public IniDocument ToGameUserSettings() => IniSerializer.Write(this, IniFile.GameUserSettings);
+    /// <summary>Produces the GameUserSettings.ini contents for this profile. Syncs
+    /// <see cref="ServerModIds"/> (the ActiveMods ini key) from <see cref="ModIds"/> first — the
+    /// two aren't kept in sync automatically as <see cref="ModIds"/> changes, since the ini value
+    /// only actually matters at write time.</summary>
+    public IniDocument ToGameUserSettings()
+    {
+        ServerModIds = string.Join(',', ModIds);
+        return IniSerializer.Write(this, IniFile.GameUserSettings);
+    }
 
     /// <summary>Produces the Game.ini contents for this profile.</summary>
     public IniDocument ToGameIni() => IniSerializer.Write(this, IniFile.Game);

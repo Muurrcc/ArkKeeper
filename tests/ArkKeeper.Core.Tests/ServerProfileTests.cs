@@ -68,4 +68,34 @@ public class ServerProfileTests
         Assert.Equal(original.PveMode, restored.PveMode);
         Assert.Equal(original.MaxPlayers, restored.MaxPlayers);
     }
+
+    [Fact]
+    public void ToGameUserSettings_WritesModIdsAsActiveMods()
+    {
+        // ModIds (used for the -mods= launch argument) and ActiveMods/ServerModIds (the ini key)
+        // are two independent pieces of state — nothing keeps them in sync as ModIds changes, so
+        // ToGameUserSettings has to derive the ini value from ModIds itself at write time.
+        var profile = new ServerProfile();
+        profile.ModIds.Add("123456");
+        profile.ModIds.Add("789012");
+
+        var document = profile.ToGameUserSettings();
+
+        Assert.Equal("123456,789012", document.FindSection("ServerSettings")!.GetSingle("ActiveMods"));
+    }
+
+    [Fact]
+    public void ImportFrom_PopulatesModIdsFromActiveMods()
+    {
+        var original = new ServerProfile();
+        original.ModIds.Add("111");
+        original.ModIds.Add("222");
+
+        var restored = new ServerProfile();
+        restored.ImportFrom(
+            ArkKeeper.Core.Ini.IniDocument.Parse(original.ToGameUserSettings().ToString()),
+            ArkKeeper.Core.Ini.IniDocument.Parse(original.ToGameIni().ToString()));
+
+        Assert.Equal(new[] { "111", "222" }, restored.ModIds);
+    }
 }

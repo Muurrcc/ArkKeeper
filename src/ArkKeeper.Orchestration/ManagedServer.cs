@@ -1,5 +1,6 @@
 using ArkKeeper.Core.Players;
 using ArkKeeper.Core.Profiles;
+using ArkKeeper.Core.Scheduling;
 using ArkKeeper.Core.Servers;
 using ArkKeeper.Discord;
 using ArkKeeper.Networking.Rcon;
@@ -154,6 +155,14 @@ public sealed class ManagedServer : IAsyncDisposable
 
     public Task<string> UnbanPlayerAsync(string steamId, CancellationToken cancellationToken = default) =>
         SendRconCommandAsync($"UnbanPlayer {steamId}", cancellationToken);
+
+    /// <summary>Runs whichever of <paramref name="scheduler"/>'s tasks are due, over this
+    /// server's own managed RCON connection — via <see cref="SendRconCommandAsync"/>, so it
+    /// shares the same connect/lock/retry behavior as everything else here, rather than the
+    /// scheduler needing a second, independent <see cref="RconClient"/>.</summary>
+    public Task<IReadOnlyList<ScheduledTask>> RunDueScheduledTasksAsync(
+        SchedulerRunner scheduler, DateTimeOffset now, CancellationToken cancellationToken = default) =>
+        scheduler.RunDueTasksAsync(SendRconCommandAsync, now, cancellationToken);
 
     /// <summary>Returns the current RCON connection, or establishes one. Callers must already
     /// hold <see cref="_rconLock"/> — this does no locking of its own.</summary>

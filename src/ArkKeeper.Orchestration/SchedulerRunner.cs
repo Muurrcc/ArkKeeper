@@ -63,10 +63,15 @@ public sealed class SchedulerRunner
         }
     }
 
-    /// <summary>Runs every due task's command over RCON and advances its schedule. Returns the
-    /// tasks that ran, in case a caller wants to notify.</summary>
+    /// <summary>Runs every due task's command and advances its schedule, sending each command
+    /// through <paramref name="sendCommand"/> — a plain delegate rather than a concrete
+    /// <see cref="RconClient"/>, so a caller that already owns its own connect/lock/retry
+    /// discipline around RCON (like <c>ManagedServer.SendRconCommandAsync</c>, which keeps its
+    /// <see cref="RconClient"/> private on purpose) can plug straight in instead of the runner
+    /// needing a second, independent RCON connection. Returns the tasks that ran, in case a
+    /// caller wants to notify.</summary>
     public async Task<IReadOnlyList<ScheduledTask>> RunDueTasksAsync(
-        RconClient rcon, DateTimeOffset now, CancellationToken cancellationToken = default)
+        Func<string, CancellationToken, Task<string>> sendCommand, DateTimeOffset now, CancellationToken cancellationToken = default)
     {
         TaskSchedule[] snapshot;
         lock (_lock)
@@ -87,7 +92,7 @@ public sealed class SchedulerRunner
 
             try
             {
-                await rcon.ExecuteCommandAsync(schedule.Task.Command, cancellationToken);
+                await sendCommand(schedule.Task.Command, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -102,14 +107,19 @@ public sealed class SchedulerRunner
         return ran;
     }
 
+    /// <summary>Convenience overload for callers that just have a raw <see cref="RconClient"/>.</summary>
+    public Task<IReadOnlyList<ScheduledTask>> RunDueTasksAsync(
+        RconClient rcon, DateTimeOffset now, CancellationToken cancellationToken = default) =>
+        RunDueTasksAsync(rcon.ExecuteCommandAsync, now, cancellationToken);
+
     /// <summary>Polls for due tasks every <paramref name="pollInterval"/> until cancelled.</summary>
-    public async Task RunLoopAsync(RconClient rcon, TimeSpan pollInterval, CancellationToken cancellationToken)
+    public async Task RunLoopAsync(Func<string, CancellationToken, Task<string>> sendCommand, TimeSpan pollInterval, CancellationToken cancellationToken)
     {
         while (!cancellationToken.IsCancellationRequested)
         {
             try
             {
-                await RunDueTasksAsync(rcon, DateTimeOffset.UtcNow, cancellationToken);
+                await RunDueTasksAsync(sendCommand, DateTimeOffset.UtcNow, cancellationToken);
             }
             catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
             {
@@ -126,4 +136,8 @@ public sealed class SchedulerRunner
             }
         }
     }
+
+    /// <summary>Convenience overload for callers that just have a raw <see cref="RconClient"/>.</summary>
+    public Task RunLoopAsync(RconClient rcon, TimeSpan pollInterval, CancellationToken cancellationToken) =>
+        RunLoopAsync(rcon.ExecuteCommandAsync, pollInterval, cancellationToken);
 }
