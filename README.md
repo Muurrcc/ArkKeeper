@@ -40,7 +40,10 @@ Theme picker in Settings:
 
 ## Installation
 
-_(Pending until the first published release — in the meantime, build it yourself, see below)_
+Grab the latest release from the [Releases page](https://github.com/Muurrcc/ArkKeeper/releases/latest):
+
+- **`ArkKeeper-*-win-x64-standalone.zip`** — no .NET installation required, just extract and run `ArkKeeper.App.exe`. This is the one most people want.
+- **`ArkKeeper-*-win-x64.zip`** — smaller download, requires the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0) already installed.
 
 ## Build from Source
 
