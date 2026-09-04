@@ -48,6 +48,11 @@ public static class ThemeService
                 ApplyWindowBackground(NavyWindowColor);
                 break;
             default:
+                // Bug found switching Navy/OledBlack -> Light: this list used to omit
+                // CardBackgroundFillColorDefaultBrush, which SetSurfaceBrushes sets separately
+                // from SurfaceResourceKeys below — every card kept the previous theme's tint
+                // forever, since nothing ever cleared it back out.
+                app.Resources.Remove("CardBackgroundFillColorDefaultBrush");
                 foreach (var key in SurfaceResourceKeys)
                 {
                     app.Resources.Remove(key);
