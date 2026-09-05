@@ -37,7 +37,20 @@ public static class TribeFileReader
         var tribes = new List<TribeInfo>();
         foreach (var file in Directory.EnumerateFiles(directory, "*.arktribe"))
         {
-            var tribe = Read(file);
+            TribeInfo? tribe;
+            try
+            {
+                tribe = Read(file);
+            }
+            catch (IOException)
+            {
+                // Same reasoning as PlayerFileReader.ReadDirectory: this reads a running server's
+                // own save directory, and the server can have this exact file open for exclusive
+                // write at the moment we try to read it — one locked file shouldn't hide every
+                // other tribe too.
+                continue;
+            }
+
             if (tribe is not null)
             {
                 tribes.Add(tribe);

@@ -64,6 +64,25 @@ public class TribeFileReaderTests : IDisposable
         Assert.Equal(new[] { 1, 2 }, tribes.Select(t => t.Id).OrderBy(id => id));
     }
 
+    [Fact]
+    public void ReadDirectory_WhenOneFileIsLockedByAnotherProcess_StillReturnsTheOthers()
+    {
+        // Same reasoning as the matching PlayerFileReader test: this reads a *running* server's
+        // own save directory, and the server can have a tribe file open for exclusive write at
+        // the exact moment ArkKeeper tries to read it. That one locked file used to abort the
+        // whole directory scan instead of just being skipped.
+        File.WriteAllBytes(Path.Combine(_directory, "1.arktribe"), BuildIntProperty("TribeID", "IntProperty", 1));
+        var lockedPath = Path.Combine(_directory, "2.arktribe");
+        File.WriteAllBytes(lockedPath, BuildIntProperty("TribeID", "IntProperty", 2));
+
+        using var exclusiveHandle = new FileStream(lockedPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+
+        var tribes = TribeFileReader.ReadDirectory(_directory);
+
+        var tribe = Assert.Single(tribes);
+        Assert.Equal(1, tribe.Id);
+    }
+
     private static byte[] BuildIntProperty(string name, string typeName, int value)
     {
         var filler = new byte[9];

@@ -41,7 +41,20 @@ public static class PlayerFileReader
         var players = new List<PlayerInfo>();
         foreach (var file in Directory.EnumerateFiles(directory, "*.arkprofile"))
         {
-            var player = Read(file);
+            PlayerInfo? player;
+            try
+            {
+                player = Read(file);
+            }
+            catch (IOException)
+            {
+                // This is read straight from a *running* server's own save directory (that's the
+                // whole point of the Players page), and the server can have this exact file open
+                // for exclusive write at the moment we try to read it — one locked file shouldn't
+                // hide every other player too.
+                continue;
+            }
+
             if (player is not null)
             {
                 players.Add(player);

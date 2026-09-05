@@ -70,6 +70,27 @@ public class PlayerFileReaderTests : IDisposable
         Assert.Equal(new[] { "A", "B" }, players.Select(p => p.SteamName).OrderBy(n => n));
     }
 
+    [Fact]
+    public void ReadDirectory_WhenOneFileIsLockedByAnotherProcess_StillReturnsTheOthers()
+    {
+        // The doc comment on ReadDirectory promises "files that fail to parse are skipped rather
+        // than throwing" — but this is read from a *running* server's own save directory (that's
+        // the whole point of the Players page), and the server process itself can have a player's
+        // .arkprofile open for exclusive write at the exact moment ArkKeeper tries to read it.
+        // Without a try/catch, that one locked file's IOException used to abort the whole
+        // directory scan, hiding every other player too.
+        File.WriteAllBytes(Path.Combine(_directory, "1.arkprofile"), BuildStrProperty("PlayerName", "A"));
+        var lockedPath = Path.Combine(_directory, "2.arkprofile");
+        File.WriteAllBytes(lockedPath, BuildStrProperty("PlayerName", "B"));
+
+        using var exclusiveHandle = new FileStream(lockedPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+
+        var players = PlayerFileReader.ReadDirectory(_directory);
+
+        var player = Assert.Single(players);
+        Assert.Equal("A", player.SteamName);
+    }
+
     private static byte[] BuildIntProperty(string name, int value)
     {
         var valueBytes = new byte[4];
