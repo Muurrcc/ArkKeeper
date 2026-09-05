@@ -90,20 +90,40 @@ public sealed class WorldBackupService
             throw new FileNotFoundException($"Backup not found: {backupPath}", backupPath);
         }
 
+        // Extract/copy into a staging directory next to saveDirectory (so the later Directory.Move
+        // stays on the same volume) *before* touching the live save — a corrupt/truncated backup
+        // (bad download, disk error, ...) throwing partway through used to leave the original
+        // saveDirectory already deleted with nothing to replace it: the live world wiped for
+        // nothing. Only swap the staged content in once it's fully extracted/copied.
+        var stagingPath = saveDirectory + ".restoring-" + Guid.NewGuid().ToString("N");
+        try
+        {
+            if (isZip)
+            {
+                Directory.CreateDirectory(stagingPath);
+                ZipFile.ExtractToDirectory(backupPath, stagingPath);
+            }
+            else
+            {
+                CopyDirectory(backupPath, stagingPath);
+            }
+        }
+        catch
+        {
+            if (Directory.Exists(stagingPath))
+            {
+                Directory.Delete(stagingPath, recursive: true);
+            }
+
+            throw;
+        }
+
         if (Directory.Exists(saveDirectory))
         {
             Directory.Delete(saveDirectory, recursive: true);
         }
 
-        if (isZip)
-        {
-            Directory.CreateDirectory(saveDirectory);
-            ZipFile.ExtractToDirectory(backupPath, saveDirectory);
-        }
-        else
-        {
-            CopyDirectory(backupPath, saveDirectory);
-        }
+        Directory.Move(stagingPath, saveDirectory);
     }
 
     private static void CopyDirectory(string source, string destination)

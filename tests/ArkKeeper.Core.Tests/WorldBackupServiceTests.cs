@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using ArkKeeper.Core.Snapshots;
 using Xunit;
 
@@ -122,6 +123,26 @@ public class WorldBackupServiceTests : IDisposable
 
         Assert.Empty(deleted);
         Assert.Single(service.ListBackups());
+    }
+
+    [Fact]
+    public void RestoreBackup_WhenTheBackupZipIsCorrupt_LeavesTheOriginalSaveDirectoryIntact()
+    {
+        // RestoreBackup used to delete saveDirectory unconditionally *before* extracting the
+        // backup — a corrupt/truncated zip (bad download, disk error, ...) then threw partway
+        // through ZipFile.ExtractToDirectory with the original save already gone: the live world
+        // ended up wiped with nothing to replace it, which is strictly worse than doing nothing.
+        // Restoring into a staging directory first and only swapping it in on success avoids that.
+        var service = new WorldBackupService(_backupRoot);
+        var corruptZipPath = Path.Combine(_backupRoot, "corrupt.zip");
+        Directory.CreateDirectory(_backupRoot);
+        File.WriteAllText(corruptZipPath, "this is not a zip file");
+
+        Assert.ThrowsAny<InvalidDataException>(() => service.RestoreBackup(corruptZipPath, _saveDirectory));
+
+        Assert.True(Directory.Exists(_saveDirectory));
+        Assert.Equal("save-data", File.ReadAllText(Path.Combine(_saveDirectory, "TheIsland.ark")));
+        Assert.Equal("profile-data", File.ReadAllText(Path.Combine(_saveDirectory, "SavedArksLocal", "Profile.arkprofile")));
     }
 
     public void Dispose()
