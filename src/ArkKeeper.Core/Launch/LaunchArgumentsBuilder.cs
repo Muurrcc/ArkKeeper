@@ -5,24 +5,25 @@ namespace ArkKeeper.Core.Launch;
 /// <summary>Builds the ShooterGameServer command line for a <see cref="ServerProfile"/>.
 /// Most settings live in GameUserSettings.ini/Game.ini (see <see cref="ServerProfile.ToGameUserSettings"/>);
 /// this only covers the handful of things ARK reads from the launch command itself
-/// (map, session identity, ports, mods).</summary>
+/// (map, ports, mods) — notably NOT session name or passwords, see the comment below.</summary>
 public static class LaunchArgumentsBuilder
 {
     public static string Build(ServerProfile profile)
     {
+        // SessionName/ServerPassword/ServerAdminPassword deliberately do NOT go on the command
+        // line — they're already written to GameUserSettings.ini by WriteConfigFiles() (called
+        // right before every Start()), matching the original tool's own GetServerArgs(), which
+        // never put them here either. Putting them here was a real bug: unlike SessionName (which
+        // was at least quoted), ServerPassword/AdminPassword were not, so any password containing
+        // a space would fracture this whole url-parameter blob into multiple command-line
+        // arguments and corrupt the launch — and either way, a password is then visible in plain
+        // text to anything that can read this process's command line (Task Manager, WMI, ...).
         var urlParameters = new List<string>
         {
             profile.MapName,
             "listen",
-            $"SessionName=\"{profile.SessionName}\"",
         };
 
-        if (!string.IsNullOrEmpty(profile.ServerPassword))
-        {
-            urlParameters.Add($"ServerPassword={profile.ServerPassword}");
-        }
-
-        urlParameters.Add($"ServerAdminPassword={profile.AdminPassword}");
         urlParameters.Add($"Port={profile.Port}");
         urlParameters.Add($"QueryPort={profile.QueryPort}");
 

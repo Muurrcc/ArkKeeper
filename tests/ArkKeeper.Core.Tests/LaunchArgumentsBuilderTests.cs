@@ -7,41 +7,62 @@ namespace ArkKeeper.Core.Tests;
 public class LaunchArgumentsBuilderTests
 {
     [Fact]
-    public void Build_IncludesMapSessionNameAndPorts()
+    public void Build_IncludesMapAndPorts()
     {
         var profile = new ServerProfile
         {
             MapName = "Ragnarok",
-            SessionName = "My ArkKeeper Server",
             Port = 7778,
             QueryPort = 27016,
         };
 
         var args = LaunchArgumentsBuilder.Build(profile);
 
-        Assert.StartsWith("Ragnarok?listen?SessionName=\"My ArkKeeper Server\"", args);
-        Assert.Contains("Port=7778", args);
+        Assert.StartsWith("Ragnarok?listen?Port=7778", args);
         Assert.Contains("QueryPort=27016", args);
     }
 
     [Fact]
-    public void Build_OmitsServerPasswordWhenEmpty()
+    public void Build_NeverPutsSessionNameOnTheCommandLine()
     {
-        var profile = new ServerProfile { ServerPassword = "" };
+        // SessionName is already written to GameUserSettings.ini by WriteConfigFiles() (called
+        // right before every Start()) — it used to also appear here, quoted, but a value like this
+        // one containing both spaces and a quote can't be escaped by simply wrapping it, and
+        // there's no reason to duplicate it here at all when the ini path already handles it.
+        var profile = new ServerProfile { SessionName = "My \"Best\" Server" };
 
         var args = LaunchArgumentsBuilder.Build(profile);
 
-        Assert.DoesNotContain("ServerPassword=", args);
+        Assert.DoesNotContain("SessionName", args);
     }
 
     [Fact]
-    public void Build_IncludesAdminPasswordAlways()
+    public void Build_NeverPutsServerPasswordOnTheCommandLine()
     {
-        var profile = new ServerProfile { AdminPassword = "supersecret" };
+        // Same reasoning as AdminPassword below: this used to appear here completely unquoted, so
+        // a password containing a space would fracture the whole url-parameter blob into multiple
+        // command-line arguments and corrupt the launch. ServerPassword is already written to
+        // GameUserSettings.ini by WriteConfigFiles(), so it doesn't need to be here at all.
+        var profile = new ServerProfile { ServerPassword = "my pass" };
 
         var args = LaunchArgumentsBuilder.Build(profile);
 
-        Assert.Contains("ServerAdminPassword=supersecret", args);
+        Assert.DoesNotContain("ServerPassword", args);
+    }
+
+    [Fact]
+    public void Build_NeverPutsAdminPasswordOnTheCommandLine()
+    {
+        // Matches the original ARK Server Manager's own GetServerArgs(), which never put this on
+        // the command line either — only in the ini. Putting it here was a real bug (a password
+        // with a space corrupts the whole launch) and a real exposure (a process's command line
+        // is visible to anything that can query it — Task Manager's "Command line" column, WMI).
+        var profile = new ServerProfile { AdminPassword = "super secret" };
+
+        var args = LaunchArgumentsBuilder.Build(profile);
+
+        Assert.DoesNotContain("AdminPassword", args);
+        Assert.DoesNotContain("super secret", args);
     }
 
     [Fact]
