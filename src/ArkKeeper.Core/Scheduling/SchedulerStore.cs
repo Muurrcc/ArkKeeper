@@ -27,9 +27,19 @@ public sealed class SchedulerStore
             return Array.Empty<ScheduledTask>();
         }
 
-        await using var stream = File.OpenRead(_filePath);
-        var tasks = await JsonSerializer.DeserializeAsync(stream, SchedulerJsonContext.Default.ListScheduledTask, cancellationToken);
-        return (IReadOnlyList<ScheduledTask>?)tasks ?? Array.Empty<ScheduledTask>();
+        try
+        {
+            await using var stream = File.OpenRead(_filePath);
+            var tasks = await JsonSerializer.DeserializeAsync(stream, SchedulerJsonContext.Default.ListScheduledTask, cancellationToken);
+            return (IReadOnlyList<ScheduledTask>?)tasks ?? Array.Empty<ScheduledTask>();
+        }
+        catch (JsonException)
+        {
+            // A truncated/corrupted schedule file shouldn't take down loading (this is awaited
+            // from a fire-and-forget call — see ServerRowViewModel.EnsureSchedulerLoadedAsync) —
+            // treat it the same as "nothing saved yet" rather than throwing.
+            return Array.Empty<ScheduledTask>();
+        }
     }
 
     public async Task SaveAsync(IReadOnlyList<ScheduledTask> tasks, CancellationToken cancellationToken = default)

@@ -66,6 +66,23 @@ public class AppSettingsStoreTests : IDisposable
         Assert.True(File.Exists(_filePath));
     }
 
+    [Fact]
+    public async Task LoadAsync_WhenFileIsCorrupt_ReturnsDefaultsRatherThanThrowing()
+    {
+        // Same reasoning as ProfileStore's corrupt-file test: this is loaded from
+        // MainViewModel.InitializeAsync via MainWindow's "async void OnOpened" with no try/catch
+        // and no global handler — a truncated settings.json (crash, disk full, ...) would
+        // otherwise crash the whole app before the window is even usable, before the user could
+        // ever reach Settings to fix or delete the file themselves.
+        Directory.CreateDirectory(_directory);
+        await File.WriteAllTextAsync(_filePath, "{ not valid json");
+        var store = new AppSettingsStore(_filePath);
+
+        var settings = await store.LoadAsync();
+
+        Assert.Equal(AppThemeKind.Navy, settings.ThemeKind);
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_directory))

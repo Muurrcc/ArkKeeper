@@ -24,9 +24,20 @@ public sealed class AppSettingsStore
             return new AppSettings();
         }
 
-        await using var stream = File.OpenRead(_filePath);
-        var settings = await JsonSerializer.DeserializeAsync(stream, AppSettingsJsonContext.Default.AppSettings, cancellationToken);
-        return settings ?? new AppSettings();
+        try
+        {
+            await using var stream = File.OpenRead(_filePath);
+            var settings = await JsonSerializer.DeserializeAsync(stream, AppSettingsJsonContext.Default.AppSettings, cancellationToken);
+            return settings ?? new AppSettings();
+        }
+        catch (JsonException)
+        {
+            // A truncated/corrupted settings file (crash, disk full, ...) is loaded from
+            // MainViewModel.InitializeAsync via MainWindow's "async void OnOpened" with no
+            // try/catch and no global handler — letting this throw would crash the whole app
+            // before the window is even usable, with no way to reach Settings and fix it.
+            return new AppSettings();
+        }
     }
 
     public async Task SaveAsync(AppSettings settings, CancellationToken cancellationToken = default)

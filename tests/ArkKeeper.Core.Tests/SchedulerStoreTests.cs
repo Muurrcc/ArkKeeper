@@ -62,6 +62,24 @@ public class SchedulerStoreTests : IDisposable
         Assert.True(File.Exists(_filePath));
     }
 
+    [Fact]
+    public async Task LoadAsync_WhenFileIsCorrupt_ReturnsEmptyRatherThanThrowing()
+    {
+        // A truncated/corrupted scheduler.json is loaded via ServerRowViewModel's fire-and-forget
+        // EnsureSchedulerLoadedAsync — an exception there sets _schedulerLoaded to true anyway (it's
+        // set before the await) but is otherwise silently swallowed as an unobserved task exception,
+        // so that server's schedule silently never loads (and a later SaveAsync would then overwrite
+        // the corrupt-but-maybe-partially-there file with an empty one). Returning empty instead of
+        // throwing at least leaves the server usable and its schedule file as-is.
+        Directory.CreateDirectory(_directory);
+        await File.WriteAllTextAsync(_filePath, "{ not valid json");
+        var store = new SchedulerStore(_filePath);
+
+        var tasks = await store.LoadAsync();
+
+        Assert.Empty(tasks);
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_directory))

@@ -92,6 +92,29 @@ public class ProfileStoreTests : IDisposable
         Assert.Empty(loaded);
     }
 
+    [Fact]
+    public async Task LoadAllAsync_SkipsACorruptProfileFile_RatherThanThrowingForEveryProfile()
+    {
+        // A single truncated/corrupted *.json (a crash or disk-full mid-write, a leftover from
+        // before SaveAsync's own concurrency fix, or a manually-edited file) must not take down
+        // every other, perfectly good profile with it — and in this app specifically, LoadAllAsync
+        // throwing here means MainViewModel.InitializeAsync throws, which is awaited from
+        // MainWindow's "async void OnOpened" with no try/catch and no global handler: an unhandled
+        // exception there crashes the whole app before the window is even usable, with no way to
+        // reach Settings and fix it.
+        var store = new ProfileStore(_directory);
+        var goodProfile = new ServerProfile { ProfileName = "Good Profile" };
+        await store.SaveAsync(goodProfile);
+
+        Directory.CreateDirectory(_directory);
+        await File.WriteAllTextAsync(Path.Combine(_directory, $"{Guid.NewGuid()}.json"), "{ not valid json");
+
+        var loaded = await store.LoadAllAsync();
+
+        var reloaded = Assert.Single(loaded);
+        Assert.Equal(goodProfile.ProfileId, reloaded.ProfileId);
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_directory))

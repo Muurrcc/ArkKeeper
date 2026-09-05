@@ -38,11 +38,23 @@ public sealed class ProfileStore
         var profiles = new List<ServerProfile>();
         foreach (var file in System.IO.Directory.EnumerateFiles(Directory, "*.json"))
         {
-            await using var stream = File.OpenRead(file);
-            var data = await JsonSerializer.DeserializeAsync(stream, ServerProfileDataJsonContext.Default.ServerProfileData, cancellationToken);
-            if (data is not null)
+            try
             {
-                profiles.Add(ServerProfile.FromData(data));
+                await using var stream = File.OpenRead(file);
+                var data = await JsonSerializer.DeserializeAsync(stream, ServerProfileDataJsonContext.Default.ServerProfileData, cancellationToken);
+                if (data is not null)
+                {
+                    profiles.Add(ServerProfile.FromData(data));
+                }
+            }
+            catch (JsonException)
+            {
+                // A single truncated/corrupted profile (a crash or disk-full mid-write, or a
+                // manually-edited file) shouldn't take every other, perfectly good profile down
+                // with it — this is awaited from MainWindow's "async void OnOpened" with no
+                // try/catch and no global handler, so an unhandled exception here would crash the
+                // whole app before the window is even usable, with no way to reach Settings and
+                // fix it.
             }
         }
 
