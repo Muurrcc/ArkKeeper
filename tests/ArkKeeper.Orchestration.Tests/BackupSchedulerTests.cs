@@ -38,6 +38,29 @@ public class BackupSchedulerTests : IDisposable
     }
 
     [Fact]
+    public async Task RunIfDueAsync_WithASendCommandDelegate_WorksWithoutARawRconClient()
+    {
+        // The delegate-based overload is what ManagedServer.RunScheduledBackupIfDueAsync actually
+        // uses (via SendRconCommandAsync, which owns its own connect/lock/retry discipline) —
+        // this proves the plumbing works with a plain delegate, not just a raw RconClient.
+        var sentCommands = new List<string>();
+        Task<string> SendCommand(string command, CancellationToken cancellationToken)
+        {
+            sentCommands.Add(command);
+            return Task.FromResult("OK");
+        }
+
+        var backupService = new WorldBackupService(_backupRoot);
+        var createdAt = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        var scheduler = new BackupScheduler(backupService, ScheduleKind.Interval, TimeSpan.FromHours(6), now: createdAt);
+
+        var backupPath = await scheduler.RunIfDueAsync(SendCommand, _saveDirectory, createdAt.AddHours(6));
+
+        Assert.NotNull(backupPath);
+        Assert.Equal(new[] { "SaveWorld" }, sentCommands);
+    }
+
+    [Fact]
     public async Task RunIfDueAsync_WhenNotDue_ReturnsNullAndCreatesNothing()
     {
         await using var server = new FakeRconServer();

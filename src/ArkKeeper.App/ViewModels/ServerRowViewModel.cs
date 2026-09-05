@@ -3,6 +3,7 @@ using ArkKeeper.Core.Players;
 using ArkKeeper.Core.Profiles;
 using ArkKeeper.Core.Scheduling;
 using ArkKeeper.Core.Servers;
+using ArkKeeper.Core.Snapshots;
 using ArkKeeper.Orchestration;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -20,8 +21,10 @@ public partial class ServerRowViewModel : ViewModelBase
 
     private readonly ManagedServer _server;
     private readonly SchedulerStore _schedulerStore;
+    private readonly WorldBackupService _backupService;
     private readonly ActivityLog _activityLog;
     private bool _schedulerLoaded;
+    private BackupScheduler? _backupScheduler;
 
     public ServerRowViewModel(ManagedServer server, ActivityLog activityLog)
     {
@@ -33,6 +36,12 @@ public partial class ServerRowViewModel : ViewModelBase
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "ArkKeeper", "Schedules", $"{server.Profile.ProfileId}.json");
         _schedulerStore = new SchedulerStore(filePath);
+
+        var backupRoot = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "ArkKeeper", "Backups", server.Profile.ProfileId.ToString());
+        _backupService = new WorldBackupService(backupRoot);
+        RefreshBackupSchedule();
     }
 
     public ServerProfile Profile => _server.Profile;
@@ -148,6 +157,45 @@ public partial class ServerRowViewModel : ViewModelBase
         try
         {
             await _server.RunDueScheduledTasksAsync(Scheduler, DateTimeOffset.UtcNow);
+        }
+        catch
+        {
+        }
+    }
+
+    /// <summary>(Re)builds the scheduled-backup runner from the profile's current backup-schedule
+    /// settings — called once at construction and again whenever <see cref="BackupsViewModel"/>
+    /// saves new settings, so a change takes effect on the next poll tick rather than waiting for
+    /// an app restart. Null (no scheduler) when the schedule is disabled.</summary>
+    public void RefreshBackupSchedule()
+    {
+        _backupScheduler = Profile.BackupScheduleEnabled
+            ? new BackupScheduler(
+                _backupService,
+                Profile.BackupScheduleKind,
+                Profile.BackupScheduleValue,
+                Profile.BackupCompress,
+                Profile.BackupKeepCount > 0 ? Profile.BackupKeepCount : null)
+            : null;
+    }
+
+    /// <summary>Runs the scheduled backup if one is enabled and due, swallowing failures — called
+    /// on a background poll tick, not a user action, same reasoning as
+    /// <see cref="RunDueScheduledTasksAsync"/>.</summary>
+    public async Task RunDueBackupAsync()
+    {
+        if (!IsRunning || _backupScheduler is not { } scheduler)
+        {
+            return;
+        }
+
+        try
+        {
+            var backupPath = await _server.RunScheduledBackupIfDueAsync(scheduler, Profile.GetSaveDirectory(), DateTimeOffset.UtcNow);
+            if (backupPath is not null)
+            {
+                _activityLog.Add($"Scheduled backup completed for {Profile.ProfileName}", ActivityKind.Backup);
+            }
         }
         catch
         {

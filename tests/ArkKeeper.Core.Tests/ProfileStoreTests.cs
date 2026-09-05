@@ -1,4 +1,5 @@
 using ArkKeeper.Core.Profiles;
+using ArkKeeper.Core.Scheduling;
 using Xunit;
 
 namespace ArkKeeper.Core.Tests;
@@ -41,6 +42,11 @@ public class ProfileStoreTests : IDisposable
             StructureDamageMultiplier = 9.5f,
             MaxPlayers = 42,
             MapName = "Ragnarok",
+            BackupScheduleEnabled = true,
+            BackupScheduleKind = ScheduleKind.DailyAt,
+            BackupScheduleValue = TimeSpan.FromHours(3.5),
+            BackupCompress = false,
+            BackupKeepCount = 5,
         };
         profile.ModIds.Add("111");
         profile.ModIds.Add("222");

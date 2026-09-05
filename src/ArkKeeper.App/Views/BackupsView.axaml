@@ -37,6 +37,23 @@
             <Button Grid.Column="3" Classes="Pill" Content="Reload" Command="{Binding ReloadCommand}" />
         </Grid>
 
+        <Border DockPanel.Dock="Top" Classes="Card" Margin="0,0,0,16">
+            <StackPanel Spacing="10">
+                <CheckBox Content="Automatic scheduled backups" FontWeight="SemiBold"
+                          IsChecked="{Binding IsBackupScheduleEnabled}" />
+                <Grid ColumnDefinitions="*,*">
+                    <ComboBox Grid.Column="0" ItemsSource="{Binding ScheduleKinds}" SelectedItem="{Binding BackupScheduleKind}" Margin="0,0,8,0" />
+                    <TextBox Grid.Column="1" Text="{Binding BackupScheduleValueText}"
+                              PlaceholderText="Interval: hours (e.g. 6) - Daily at: HH:mm" />
+                </Grid>
+                <Grid ColumnDefinitions="*,*">
+                    <CheckBox Grid.Column="0" Content="Compress scheduled backups (.zip)" IsChecked="{Binding BackupCompress}" />
+                    <TextBox Grid.Column="1" Text="{Binding BackupKeepCountText}" PlaceholderText="Keep this many (blank = keep all)" />
+                </Grid>
+                <Button Classes="Pill accent" Content="Save schedule" Command="{Binding SaveScheduleCommand}" HorizontalAlignment="Left" />
+            </StackPanel>
+        </Border>
+
         <ScrollViewer>
             <StackPanel Spacing="8">
                 <TextBlock Text="No backups yet — click &quot;Back up now&quot; to create the first one."

@@ -65,6 +65,7 @@ public partial class MainViewModel : ViewModelBase
             try
             {
                 await ServersPage.RunDueScheduledTasksForAllAsync();
+                await ServersPage.RunDueBackupsForAllAsync();
             }
             finally
             {
@@ -126,7 +127,7 @@ public partial class MainViewModel : ViewModelBase
     /// <summary>Opens the world save/restore page for one server. Same navigation pattern as
     /// <see cref="OpenEditor"/>.</summary>
     private void OpenBackups(ServerRowViewModel row) =>
-        SelectedPage = new BackupsViewModel(row, Activity, () => SelectedPage = ServersPage);
+        SelectedPage = new BackupsViewModel(row, _profileStore, Activity, () => SelectedPage = ServersPage);
 
     /// <summary>Opens the scheduled-tasks page for one server. Same navigation pattern as
     /// <see cref="OpenEditor"/>.</summary>

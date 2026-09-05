@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using ArkKeeper.Core.Scheduling;
 
 namespace ArkKeeper.Core.Profiles;
 
@@ -47,6 +48,11 @@ public sealed class ServerProfileData
     public string MapName { get; set; } = string.Empty;
     public List<string> ModIds { get; set; } = new();
     public string InstallDirectory { get; set; } = string.Empty;
+    public bool BackupScheduleEnabled { get; set; }
+    public ScheduleKind BackupScheduleKind { get; set; } = ScheduleKind.Interval;
+    public TimeSpan BackupScheduleValue { get; set; } = TimeSpan.FromHours(6);
+    public bool BackupCompress { get; set; } = true;
+    public int BackupKeepCount { get; set; }
 
     // Extended settings (ported from the original tool) — see ServerProfile.cs for the matching
     // [ObservableProperty]/[IniSetting] declarations; these must stay in sync field-for-field.

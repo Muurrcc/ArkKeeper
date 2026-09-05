@@ -1,5 +1,7 @@
 using ArkKeeper.Core.Profiles;
+using ArkKeeper.Core.Scheduling;
 using ArkKeeper.Core.Servers;
+using ArkKeeper.Core.Snapshots;
 using Xunit;
 
 namespace ArkKeeper.Orchestration.Tests;
@@ -170,5 +172,45 @@ public class ManagedServerResilienceTests
         await using var server = new ManagedServer(profile, process);
 
         Assert.False(server.AutoRestart);
+    }
+
+    [Fact]
+    public async Task RunScheduledBackupIfDueAsync_WhenDue_SendsSaveWorldOverTheManagedConnectionAndCreatesABackup()
+    {
+        // Proves BackupScheduler actually shares ManagedServer's own locked/retry-capable RCON
+        // connection (via SendRconCommandAsync) instead of needing a second, independent one —
+        // same reasoning as the scheduled-tasks scheduler already wired in RunDueScheduledTasksAsync.
+        var root = Path.Combine(Path.GetTempPath(), "ArkKeeperManagedServerBackupTests_" + Guid.NewGuid());
+        var saveDirectory = Path.Combine(root, "Saved");
+        Directory.CreateDirectory(saveDirectory);
+        File.WriteAllText(Path.Combine(saveDirectory, "TheIsland.ark"), "save-data");
+
+        try
+        {
+            await using var rconServer = new FakeRconServer();
+            var profile = new ServerProfile { RconPort = rconServer.Port, AdminPassword = "admin-pw" };
+            using var process = new ServerProcess(CmdExe, "/c ping -n 30 127.0.0.1 >nul");
+            await using var server = new ManagedServer(profile, process);
+            server.Start();
+
+            var backupService = new WorldBackupService(Path.Combine(root, "Backups"));
+            var createdAt = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+            var scheduler = new BackupScheduler(backupService, ScheduleKind.Interval, TimeSpan.FromHours(6), now: createdAt);
+
+            var backupPath = await server.RunScheduledBackupIfDueAsync(scheduler, saveDirectory, createdAt.AddHours(6));
+
+            Assert.NotNull(backupPath);
+            Assert.True(Directory.Exists(backupPath));
+            Assert.Equal(new[] { "SaveWorld" }, rconServer.ReceivedCommands);
+
+            server.Kill();
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
     }
 }

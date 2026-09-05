@@ -39,8 +39,12 @@ public sealed class BackupScheduler
     public TaskSchedule Schedule => _schedule;
 
     /// <summary>If due, saves the world over RCON and creates a backup, pruning old ones if a
-    /// keep count was configured. Returns the new backup's path, or null if it wasn't due yet.</summary>
-    public async Task<string?> RunIfDueAsync(RconClient rcon, string saveDirectory, DateTimeOffset now, CancellationToken cancellationToken = default)
+    /// keep count was configured. Returns the new backup's path, or null if it wasn't due yet.
+    /// Takes a plain delegate rather than a concrete <see cref="RconClient"/> — same reasoning as
+    /// <c>SchedulerRunner.RunDueTasksAsync</c> — so a caller that already owns its own
+    /// connect/lock/retry discipline around RCON (like <c>ManagedServer.SendRconCommandAsync</c>)
+    /// can plug straight in instead of this needing a second, independent RCON connection.</summary>
+    public async Task<string?> RunIfDueAsync(Func<string, CancellationToken, Task<string>> sendCommand, string saveDirectory, DateTimeOffset now, CancellationToken cancellationToken = default)
     {
         if (!_schedule.IsDue(now))
         {
@@ -48,7 +52,7 @@ public sealed class BackupScheduler
         }
 
         _logger.LogInformation("Running scheduled backup of {SaveDirectory}", saveDirectory);
-        await rcon.SaveWorldAsync(cancellationToken);
+        await sendCommand("SaveWorld", cancellationToken);
 
         var backupPath = _backupService.CreateBackup(saveDirectory, now, _compress);
         _schedule.MarkRan(now);
@@ -66,15 +70,19 @@ public sealed class BackupScheduler
         return backupPath;
     }
 
+    /// <summary>Convenience overload for callers that just have a raw <see cref="RconClient"/>.</summary>
+    public Task<string?> RunIfDueAsync(RconClient rcon, string saveDirectory, DateTimeOffset now, CancellationToken cancellationToken = default) =>
+        RunIfDueAsync(rcon.ExecuteCommandAsync, saveDirectory, now, cancellationToken);
+
     /// <summary>Polls for the backup schedule every <paramref name="pollInterval"/> until cancelled
     /// — mirrors <see cref="SchedulerRunner.RunLoopAsync"/> for callers that want the same pattern.</summary>
-    public async Task RunLoopAsync(RconClient rcon, string saveDirectory, TimeSpan pollInterval, CancellationToken cancellationToken)
+    public async Task RunLoopAsync(Func<string, CancellationToken, Task<string>> sendCommand, string saveDirectory, TimeSpan pollInterval, CancellationToken cancellationToken)
     {
         while (!cancellationToken.IsCancellationRequested)
         {
             try
             {
-                await RunIfDueAsync(rcon, saveDirectory, DateTimeOffset.UtcNow, cancellationToken);
+                await RunIfDueAsync(sendCommand, saveDirectory, DateTimeOffset.UtcNow, cancellationToken);
             }
             catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
             {
@@ -91,4 +99,8 @@ public sealed class BackupScheduler
             }
         }
     }
+
+    /// <summary>Convenience overload for callers that just have a raw <see cref="RconClient"/>.</summary>
+    public Task RunLoopAsync(RconClient rcon, string saveDirectory, TimeSpan pollInterval, CancellationToken cancellationToken) =>
+        RunLoopAsync(rcon.ExecuteCommandAsync, saveDirectory, pollInterval, cancellationToken);
 }

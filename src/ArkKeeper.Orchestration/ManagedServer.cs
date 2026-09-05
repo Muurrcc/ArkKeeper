@@ -193,6 +193,12 @@ public sealed class ManagedServer : IAsyncDisposable
         SchedulerRunner scheduler, DateTimeOffset now, CancellationToken cancellationToken = default) =>
         scheduler.RunDueTasksAsync(SendRconCommandAsync, now, cancellationToken);
 
+    /// <summary>Runs <paramref name="scheduler"/>'s scheduled backup if due, over this server's own
+    /// managed RCON connection — same reasoning as <see cref="RunDueScheduledTasksAsync"/>.</summary>
+    public Task<string?> RunScheduledBackupIfDueAsync(
+        BackupScheduler scheduler, string saveDirectory, DateTimeOffset now, CancellationToken cancellationToken = default) =>
+        scheduler.RunIfDueAsync(SendRconCommandAsync, saveDirectory, now, cancellationToken);
+
     /// <summary>Returns the current RCON connection, or establishes one. Callers must already
     /// hold <see cref="_rconLock"/> — this does no locking of its own.</summary>
     private async Task<RconClient> EnsureConnectedAsync(bool forceReconnect, CancellationToken cancellationToken)

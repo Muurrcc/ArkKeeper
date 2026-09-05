@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using ArkKeeper.Core.Ini;
+using ArkKeeper.Core.Scheduling;
 using ArkKeeper.Core.Utils;
 using CommunityToolkit.Mvvm.ComponentModel;
 
@@ -1004,6 +1005,30 @@ public sealed partial class ServerProfile : ObservableObject
 
     #endregion
 
+    #region Backup schedule (ArkKeeper-only, not written to any .ini file)
+
+    /// <summary>Whether a recurring backup runs automatically for this server — off by default
+    /// (an existing profile loaded from disk shouldn't suddenly start scheduling backups).</summary>
+    [ObservableProperty]
+    private bool _backupScheduleEnabled;
+
+    [ObservableProperty]
+    private ScheduleKind _backupScheduleKind = ScheduleKind.Interval;
+
+    /// <summary>Hours between backups when <see cref="BackupScheduleKind"/> is Interval, or the
+    /// time of day when it's DailyAt — same shape as <c>ScheduledTask.Value</c>.</summary>
+    [ObservableProperty]
+    private TimeSpan _backupScheduleValue = TimeSpan.FromHours(6);
+
+    [ObservableProperty]
+    private bool _backupCompress = true;
+
+    /// <summary>Deletes the oldest scheduled backups beyond this many. 0 means keep every one.</summary>
+    [ObservableProperty]
+    private int _backupKeepCount;
+
+    #endregion
+
     /// <summary>Full path to the Windows dedicated server executable under <see cref="InstallDirectory"/>,
     /// as reported by Steam's own app manifest for app 376030 (ARK: Survival Evolved Dedicated Server).</summary>
     public string GetServerExecutablePath() =>
@@ -1116,6 +1141,11 @@ public sealed partial class ServerProfile : ObservableObject
         MapName = MapName,
         ModIds = new List<string>(ModIds),
         InstallDirectory = InstallDirectory,
+        BackupScheduleEnabled = BackupScheduleEnabled,
+        BackupScheduleKind = BackupScheduleKind,
+        BackupScheduleValue = BackupScheduleValue,
+        BackupCompress = BackupCompress,
+        BackupKeepCount = BackupKeepCount,
 
         SpectatorPassword = SpectatorPassword,
         ServerIP = ServerIP,
@@ -1355,6 +1385,11 @@ public sealed partial class ServerProfile : ObservableObject
             MaxPlayers = data.MaxPlayers,
             MapName = data.MapName,
             InstallDirectory = data.InstallDirectory,
+            BackupScheduleEnabled = data.BackupScheduleEnabled,
+            BackupScheduleKind = data.BackupScheduleKind,
+            BackupScheduleValue = data.BackupScheduleValue,
+            BackupCompress = data.BackupCompress,
+            BackupKeepCount = data.BackupKeepCount,
 
             SpectatorPassword = data.SpectatorPassword,
             ServerIP = data.ServerIP,

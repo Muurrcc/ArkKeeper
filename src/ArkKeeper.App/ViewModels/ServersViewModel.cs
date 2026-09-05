@@ -82,6 +82,17 @@ public sealed partial class ServersViewModel : ViewModelBase
         }
     }
 
+    /// <summary>Runs each server's scheduled backup if one is due (a no-op per row unless a
+    /// schedule is enabled). Called on the same poll timer as <see cref="RunDueScheduledTasksForAllAsync"/>,
+    /// same "iterate a snapshot" reasoning.</summary>
+    public async Task RunDueBackupsForAllAsync()
+    {
+        foreach (var server in Servers.ToArray())
+        {
+            await server.RunDueBackupAsync();
+        }
+    }
+
     [RelayCommand]
     private void AddServer() => _openEditor(null);
 
